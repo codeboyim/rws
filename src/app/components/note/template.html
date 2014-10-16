@@ -1,0 +1,65 @@
+﻿<div class="compNote">
+    <fieldset>
+        <legend>Analysis Used to Assess the Risk:</legend>
+        <div class="row">
+            <div class="col col-2">
+                <label>
+                    Note Type:</label>
+            </div>
+            <div class="col col-4">
+                <select name="NoteTypeID" class="full-width">
+                    <option value="0">-- select a note type --</option>
+                    <% if(this.refData && this.refData.NoteTypes && this.refData.NoteTypes.length>0){_.each(this.refData.NoteTypes, function(item){ %>
+                        <option value="<%=item.id %>">
+                            <%=item.desc || '' %>
+                        </option>
+                        <%});} %>
+                </select>
+            </div>
+            <div class="col col-2">
+                <label>
+                    Status:</label>
+            </div>
+            <div class="col col-4">
+                <select name="NoteStatusID" class="full-width">
+                    <option value="0">-- select a note status --</option>
+                    <% if(this.refData && this.refData.NoteStatuses && this.refData.NoteStatuses.length>0){_.each(this.refData.NoteStatuses, function(item){ %>
+                        <option value="<%=item.id %>">
+                            <%=item.desc || '' %>
+                        </option>
+                        <%});} %>
+                </select>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col col-2">
+                <label>
+                    Raised By:</label>
+            </div>
+            <div class="col col-4">
+                <input name="RaisedBy" type="text" class="full-width" />
+            </div>
+            <div class="col col-2">
+                <label>
+                    Date Raised:</label>
+            </div>
+            <div class="col col-4">
+                <input name="DateRaised" type="text" class="full-width date-field" readonly />
+            </div>
+        </div>
+        <div class="row">
+            <label class="col col-2">
+                Comment
+            </label>
+            <div class="col">
+                <textarea name="Comment" class="full-width" rows="5"></textarea>
+            </div>
+        </div>
+    </fieldset>
+    <div class="row">
+        <div class="col text-right">
+            <button data-click="save">Save</button>
+            <button data-click="close" class="secondary">Cancel</button>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,136 @@
+<div class="compTreatment">
+    <fieldset>
+        <legend>Treatment Details</legend>
+        <div class="row">
+            <div class="col col-3 col-offset-1">
+                <label>
+                    Treatment Strategy:</label>
+            </div>
+            <div class="col col-6 wrap-mandatory">
+                <select name="TreatmentStrategyID" class="full-width">
+                    <option value="0">--</option>
+                    <% if(this.refData && _.isArray(this.refData.TreatmentStrategis)){ _.each(this.refData.TreatmentStrategis, function(strategy){ %>
+                        <option value="<%-strategy.id%>">
+                            <%-strategy.desc%>
+                        </option>
+                        <%}); }%>
+                </select>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col col-3 col-offset-1">
+                <label>
+                    Treatment:</label>
+            </div>
+            <div class="col col-6 wrap-mandatory">
+                <select name="TreatmentTypeID" class="full-width">
+                    <option value="0">--</option>
+                </select>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col col-3 col-offset-1">
+                <label>
+                    Treatment Objective:</label>
+            </div>
+            <div class="col col-6 wrap-mandatory">
+                <textarea cols="10" rows="5" name="TreatmentObjective" class="full-width"></textarea>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col col-3 col-offset-1">
+                <label>
+                    Treatment Manager:</label>
+            </div>
+            <div class="col col-6 wrap-mandatory">
+                <select name="TreatmentManagerID" class="full-width">
+                    <option value="0">--</option>
+                    <% if(this.refData && _.isArray(this.refData.TreatmentManagers)){ 
+                        _.each(this.refData.TreatmentManagers, function(manager){ %>
+                        <option value="<%-manager.id%>">
+                            <%-manager.desc%>
+                        </option>
+                        <%}); }%>
+                </select>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col col-3 col-offset-1">
+                <label>
+                    Bushfire Management Zone:</label>
+            </div>
+            <div class="col col-6 wrap-mandatory">
+                <select name="BushfireManagementZoneID" class="full-width">
+                    <option value="0">--</option>
+                    <% if(this.refData && _.isArray(this.refData.BushfireManagementZones)){
+                     _.each(this.refData.BushfireManagementZones, function(zone){ %>
+                        <option value="<%-zone.id%>">
+                            <%-zone.desc%>
+                        </option>
+                        <%}); }%>
+                </select>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col col-6 col-offset-1">
+                <label>
+                    Is this treatment part of a Fire Management Plan?</label>
+            </div>
+            <div class="col col-3 radio-group">
+                <label>
+                    <input type="radio" name="IsPartOfPlan" value="false" />No</label>
+                <label>
+                    <input type="radio" name="IsPartOfPlan" value="true" />Yes</label>
+            </div>
+        </div>
+        <div data-domid="fireManagementPlanWrap" class="row" disabled>
+            <div class="col col-3 text-right col-offset-1">
+                <label disabled>
+                    Fire Management Plan:&nbsp;</label>
+            </div>
+            <div class="col col-6 wrap-mandatory">
+                <input type="text" name="FireManagementPlan" disabled class="full-width" />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col col-3 col-offset-1">
+                <label>
+                    Responsible Person:</label>
+            </div>
+            <div class="col col-6 wrap-mandatory wrap-find wrap-undo">
+                <input type="text" name="ResponsiblePersonName" class="full-width" />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col col-3 col-offset-1">
+                <label>
+                    Party Performing Treatment:</label>
+            </div>
+            <div class="col col-6 wrap-mandatory wrap-find wrap-undo no-arrow">
+                <input type="text" name="ContractorDesc" class="full-width" />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col col-3 col-offset-1">
+                <label>
+                    Scheduled Date:</label>
+            </div>
+            <div class="col col-3">
+                <input type="text" name="ScheduledDate" readonly class="full-width date-field" />
+            </div>
+        </div>
+    </fieldset>
+    <div class="row">
+        <div class="col text-right">
+            <button data-click="save">OK</button>
+            <button data-click="close" class="secondary">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script data-template="tmplSelectOptions" type="text/template">
+    <% print( '<option value="0">--</option>') %>
+        <% print( '\<%_.each(options, function(o){ %\>') %>
+            <% print( '<option value="\<%-o.id%\>">\<%-o.desc%\></option>') %>
+                <% print( '\<%});%\>') %>
+</script>

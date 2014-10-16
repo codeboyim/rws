@@ -1,0 +1,39 @@
+<div class="compAssessment">
+    <fieldset>
+        <legend>Likelihood</legend>
+        <div class="row">
+            <div class="col col-8">
+                Do fires occur frequently?
+            </div>
+            <div class="col col-4 radio-group">
+                <label>
+                    <input name="IsFrequent" value="false" type="radio">No</label>
+                <label>
+                    <input name="IsFrequent" value="true" type="radio">Yes</label>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col col-8">
+                If a fire occurs, is it expected to reach the asset?
+            </div>
+            <div class="col col-4 radio-group">
+                <label>
+                    <input name="IsExpectedToSpread" value="false" type="radio">No</label>
+                <label>
+                    <input name="IsExpectedToSpread" value="true" type="radio">Yes</label>
+            </div>
+        </div>
+    </fieldset>
+    <fieldset data-domid="fsConsequence">
+        <legend>Consequence</legend>
+        <%var tmpl=this.consequenceTemplates[this.model.get( 'AssetCategoryCode')]; if(tmpl){%>
+            <%=tmpl.apply(this)%>
+                <%}%>
+    </fieldset>
+    <div class="row">
+        <div class="col text-right">
+            <button data-click="save">Save</button>
+            <button data-click="close" class="secondary">Cancel</button>
+        </div>
+    </div>
+</div>

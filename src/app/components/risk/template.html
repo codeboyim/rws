@@ -1,0 +1,58 @@
+<div class="compRisk">
+    <section data-activestep="0" class="compRiskStep<%=activeStep===0?' active':''%>">
+        <fieldset>
+            <legend>Asset affected by this Risk</legend>
+            <div class="row">
+                <div class="col col-2 col-offset-2">
+                    <label for="assetName">Asset Name:</label>
+                </div>
+                <div class="col col-6">
+                    <input id="assetName" class="full-width" name="AssetName" type="text">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col col-2 col-offset-2">
+                    <label for="assetId">Asset ID:</label>
+                </div>
+                <div class="col col-6">
+                    <input id="assetId" type="text" class="full-width" name="AssetID">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col col-2 col-offset-2">
+                    <label for="owner">Owner:</label>
+                </div>
+                <div class="col col-6">
+                    <input id="owner" type="text" class="full-width" name="AssetOwner">
+                </div>
+            </div>
+        </fieldset>
+        <fieldset class="compRiskAnalyses">
+            <legend>Analyses used to assess this Risk</legend>
+            <div data-contentid="analysisListView"></div>
+        </fieldset>
+    </section>
+    <section data-activestep="1" class="compRiskStep<%=activeStep===1?' active':''%>">
+        <fieldset>
+            <legend>Assessment</legend>
+            <div class="row">
+                <div data-contentid="factorListView" class="col">
+                </div>
+            </div>
+        </fieldset>
+    </section>
+    <div class="clearfix row compRiskButtonGroup radius">
+        <div class="col col-4">
+            <button data-inactivestep="0" data-click="go-prev" <%- activeStep===0? 'disabled': '' %>>Prev</button>
+            <button data-inactivestep="1" data-click="go-next" <%- activeStep===1? 'disabled': '' %>>Next</button>
+            <button data-click="show-notes">Notes</button>
+        </div>
+        <div class="col col-4 text-center">
+            <button data-click="reset">Reset</button>
+            <button data-click="reload">Load last saved</button>
+        </div>
+        <div class="col col-4">
+            <input class="right" type="submit" value="Save" data-click="save">
+        </div>
+    </div>
+</div>

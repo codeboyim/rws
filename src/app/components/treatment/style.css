@@ -1,0 +1,10 @@
+.compTreatmentList .compTreatmentListItem {
+    border-bottom: solid 1px #a0a0a0;
+}
+.compTreatmentList .compTreatmentListItem:last-child {
+    border-bottom-width: 0;
+}
+.compTreatmentModal {
+    width: 80rem;
+    height: 60rem;
+}

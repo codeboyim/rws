@@ -1,0 +1,79 @@
+<div class="compAnalysis">
+    <fieldset>
+        <legend>Analysis Used to Assess the Risk:</legend>
+        <div class="row">
+            <div class="col col-3">
+                <label>
+                    Analysis Type:
+                </label>
+            </div>
+            <div class="col col-4 wrap-mandatory">
+                <select name="TypeID" class="full-width">
+                    <option value="0">--</option>
+                    <% if(this.refData && this.refData.AnalysisTypes) { _.each(this.refData.AnalysisTypes, function(type){ %>
+                        <option value="<%-type.id%>">
+                            <%-type.desc%>
+                        </option>
+                        <% });} %>
+                </select>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col col-3">
+                <label>
+                    Date of Risk Assessment:
+                </label>
+            </div>
+            <div class="col col-4 wrap-mandatory wrap-date">
+                <input type="text" name="DateAssessed" class="full-width date-field" readonly>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col col-3">
+                <label>
+                    Risk Assessor:
+                </label>
+            </div>
+            <div class="col col-9 wrap-mandatory wrap-find">
+                <input type="text" name="AssessorName" data-keyup class="full-width">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col col-3">
+                <label>
+                    Assessment Team:
+                </label>
+            </div>
+            <div class="col col-9 wrap-mandatory wrap-find bottom wrap-assessment-team">
+                <textarea name="AssessmentTeam" class="full-width" data-keyup rows="6"></textarea>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col col-3">
+                <label>
+                    Effort Hours:
+                </label>
+                <input type="text" name="EffortHours" class="full-width" data-keyup>
+            </div>
+
+            <div class="col col-3 col-offset-1">
+                <label>
+                    Hourly Rate:
+                </label>
+                <input type="text" name="HourlyRate" class="full-width" data-keyup>
+            </div>
+            <div class="col col-3 col-offset-1">
+                <label>
+                    Total Cost:
+                </label>
+                <input type="text" name="TotalCost" class="full-width" data-keyup>
+            </div>
+        </div>
+    </fieldset>
+    <div class="row">
+        <div class="col text-right">
+            <button data-click="save">OK</button>
+            <button data-click="close" class="secondary">Cancel</button>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,21 @@
+<tr>
+    <td>
+        <%=NoteTypeDesc || '' %>
+    </td>
+    <td>
+        <%=NoteStatusDesc || '' %>
+    </td>
+    <td>
+        <%=DateRaised ? DateRaised.formatDate() : '' %>
+    </td>
+    <td>
+        <%=RaisedBy || '' %>
+    </td>
+    <td>
+        <%=Comment || '' %>
+    </td>
+    <td>
+        <i class="fa fa-pencil" data-click="edit"></i>
+        <i class="fa fa-trash" data-click="del"></i>
+    </td>
+</tr>

@@ -1,0 +1,13 @@
+.compAnalysisListTable {
+    table-layout: fixed;
+} 
+.compAnalysisListTable colgroup col:last-child{
+    width:5%;
+}
+.compAnalysisListTable td{
+    text-align: center;
+}
+.compAnalysisModal{
+	width:80rem;
+	min-height: 40rem;
+}

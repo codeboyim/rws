@@ -1,0 +1,16 @@
+{
+  "name": "Demo",
+  "version": "0.0.1",
+  "description": "A demo shows a better organized and modularized front-end development in core product",
+  "author": "Yang Bai <yangb@pansoftware.com.au>",
+  "license": "MIT",
+  "devDependencies": {
+    "amdclean": "^2.3.0",
+    "connect-livereload": "^0.4.0",
+    "grunt": "^0.4.5",
+    "grunt-contrib-connect": "^0.8.0",
+    "grunt-contrib-requirejs": "^0.4.4",
+    "grunt-contrib-watch": "^0.6.1",
+    "grunt-open": "^0.2.3"
+  }
+}

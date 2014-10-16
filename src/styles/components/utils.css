@@ -1,0 +1,29 @@
+.full-width {
+    box-sizing: border-box;
+    width: 100%;
+}
+.clearfix::before,
+.clearfix::after {
+    content: " ";
+    display: table;
+}
+.clearfix::after {
+    clear: both;
+}
+.left {
+    float: left;
+}
+.right {
+    float: right;
+}
+.radius {
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+}
+.text-center {
+    text-align: center;
+}
+.text-right {
+    text-align: right;
+}

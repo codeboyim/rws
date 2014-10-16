@@ -1,0 +1,15 @@
+.compFactor thead th:nth-of-type(1) {
+    width: 50%;
+}
+.compFactor thead th:nth-of-type(2) {
+    width: 40%;
+}
+.compFactor tbody td {
+    vertical-align: top;
+}
+.compFactor tbody td:last-of-type {
+    vertical-align: middle;
+}
+.compFactorListItemDesc {
+    height: 7rem;
+}

@@ -1,0 +1,15 @@
+table {
+    border-collapse: collapse;
+}
+thead {
+    color: #3c3c3c;
+    background-color: #c9daf0;
+}
+th {
+    font-weight: normal;
+}
+th,
+td {
+    border: solid 1px #a0a0a0;
+    padding: 0.5rem;
+}

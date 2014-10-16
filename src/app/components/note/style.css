@@ -1,0 +1,22 @@
+﻿.compNoteListModal {
+    width: 80rem;
+    min-height: 40rem;
+}
+.compNoteListTable {
+    table-layout: fixed;
+:}
+.compNoteListTable td {
+    text-align: center;
+}
+.compNoteListTable th:last-of-type {
+    width: 5rem;
+}
+.compNoteModal {
+    width: 80rem;
+    min-height: 32rem;
+}
+.compNoteListBottomButtons {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+}

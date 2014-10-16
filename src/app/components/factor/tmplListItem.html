@@ -1,0 +1,42 @@
+<tr class="compFactorListItem" data-factor>
+    <td>
+        <div class="row">
+            <div class="col">
+                <select name="AssetCategoryID" class="full-width">
+                    <option value="0">---</option>
+                    <% if(assetCategories && assetCategories.length>0){ _.each(assetCategories , function (item){ %>
+                        <option value="<%= item.id %>">
+                            <%- item.desc %>
+                        </option>
+                        <%}); } %>
+                </select>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <select name="AssetSubCategoryID" class="full-width">
+                    <option value="0">---</option>
+                </select>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <textarea name="RiskFactorDesc" class="compFactorListItemDesc full-width"></textarea>
+            </div>
+        </div>
+        <div class="row wrap-btns">
+            <div class="col">
+                <i class="fa fa-plus" title="add" data-click="add"></i>
+                <i class="fa fa-arrow-up" title="move up" data-click="up"></i>
+                <i class="fa fa-arrow-down" title="move down" data-click="down"></i>
+                <i class="fa fa-trash" title="delete" data-click="del"></i>
+            </div>
+        </div>
+    </td>
+    <td data-contentid="treatmentListView">
+    </td>
+    <td class="text-center compFactorListItemRatingCol">
+        <button class="btn" data-click="rate">
+            Rate</button>
+    </td>
+</tr>

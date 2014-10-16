@@ -1,0 +1,46 @@
+<div class="row">
+    <div class="col col-3">
+        Vegetation Class:
+    </div>
+    <div class="col col-9">
+        <select name="VegetationClassID" class="full-width">
+            <option value="0">---</option>
+            <%_.each(this.refData.VegClasses, function(d){%>
+                <option value="<%=d.id%>">
+                    <%=d.desc%>
+                </option>
+                <%});%>
+        </select>
+    </div>
+</div>
+<div class="row">
+    <div class="col col-3">
+        Vegetation Age:
+    </div>
+    <div class="col col-3">
+        <select name="VegetationAgeID" class="full-width">
+            <option value="0">---</option>
+        </select>
+    </div>
+    <div class="col col-2 col-offset-1">
+        Canopy(%):
+    </div>
+    <div class="col col-3">
+        <select name="CanopyID" class="full-width">
+            <option value="0">---</option>
+        </select>
+    </div>
+</div>
+<div class="row">
+    <div class="col col-3">
+        Vulnerability
+    </div>
+    <div class="col col-9 radio-group">
+        <%_.each(this.refData.Vulnerabilities, function(d){%>
+            <label>
+                <input name="VulnerabilityID" type="radio" value="<%=d.id%>">
+                <%=d.desc%>
+            </label>
+            <%});%>
+    </div>
+</div>

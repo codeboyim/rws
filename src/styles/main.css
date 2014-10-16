@@ -1,0 +1,33 @@
+@import "../lib/normalize.css/normalize.css";
+@import "../lib/fontawesome/css/font-awesome.css";
+@import "../lib/jquery-ui/themes/flick/jquery-ui.css";
+@import "components/grid.css";
+@import "components/utils.css";
+@import "components/form.css";
+@import "components/table.css";
+@import "../app/style.css";
+html {
+    font-size: 62.5%;
+}
+body {
+    font-size: 1.4rem;
+    /*default 14px*/
+    padding-bottom: 5rem;
+}
+.root {
+    width: 98rem;
+    margin: 0 auto;
+}
+aside {
+    margin: 0 0 20px 0;
+}
+/*fontawesome*/
+
+.fa {
+    opacity: 0.8;
+    margin: auto 0.2rem;
+    cursor: pointer;
+}
+.fa:hover {
+    opacity: 1;
+}

@@ -1,0 +1,25 @@
+{
+  "name": "AS3959",
+  "version": "0.0.0",
+  "authors": [
+    "Yang Bai <yangb@pansoftware.com.au>"
+  ],
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "devDependencies": {
+    "requirejs": "~2.1.15",
+    "backbone": "~1.1.2",
+    "jquery": "~2.1.1",
+    "requirejs-text": "~2.0.12",
+    "normalize.css": "~3.0.2",
+    "jquery-ui": "~1.11.1",
+    "fontawesome": "~4.2.0"
+  }
+}

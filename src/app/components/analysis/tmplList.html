@@ -1,0 +1,60 @@
+<div class="compAnalysisList">
+    <div class="row">
+        <div class="col">
+            <table class="compAnalysisListTable full-width">
+                <colgroup>
+                    <col/>
+                    <col/>
+                    <col/>
+                    <col/>
+                    <col/>
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th>
+                            Type of Analysis
+                        </th>
+                        <th>
+                            Date
+                        </th>
+                        <th>
+                            Assessor
+                        </th>
+                        <th>
+                            Cost
+                        </th>
+                        <th>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% _.each(analyses, function(analysis, i){ %>
+                        <tr>
+                            <td>
+                                <%- analysis.TypeDesc %>
+                            </td>
+                            <td>
+                                <%- analysis.DateAssessed ? analysis.DateAssessed.formatDate() : '' %>
+                            </td>
+                            <td>
+                                <%- analysis.AssessorName || '' %>
+                            </td>
+                            <td>
+                                <%- _.isNull(analysis.TotalCost)? '': ( '$' + analysis.TotalCost.formatCurrency(2,3))%>
+                            </td>
+                            <td>
+                                <i class="fa fa-pencil" data-click="edit"></i>
+                                <i class="fa fa-trash" data-click="del"></i>
+                            </td>
+                        </tr>
+                        <%}); %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="row text-center">
+        <div class="col">
+            <button data-click="create">Add a new Analysis</button>
+        </div>
+    </div>
+</div>
