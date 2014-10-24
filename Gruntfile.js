@@ -15,6 +15,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-connect');
     grunt.loadNpmTasks('grunt-contrib-requirejs');
     grunt.loadNpmTasks('grunt-open');
+    grunt.loadNpmTasks('grunt-html-build');
 
     grunt.initConfig({
 
@@ -55,37 +56,31 @@ module.exports = function(grunt) {
         requirejs: {
             compile: {
                 options: {
-                    // mainConfigFile: "path/to/config.js",
-                    // name: "path/to/almond", // assumes a production build using almond
                     appDir: 'src',
-                    baseUrl: 'app',
                     dir: 'build',
+                    mainConfigFile: "src/scripts/main.js",
+                    baseUrl: 'app',
                     modules: [{
                         name: '../scripts/main',
-                        include: ['main']
+                        include: ['../lib/almond/almond'],
                     }],
-                    paths: {
-                        'risk': 'components/risk',
-                        'treatment': 'components/treatment',
-                        'analysis': 'components/analysis',
-                        'assessment': 'components/assessment',
-                        'note': 'components/note',
-                        'factor': 'components/factor',
-                        'underscore': '../lib/underscore/underscore-min',
-                        'backbone': '../lib/backbone/backbone',
-                        'jquery': '../lib/jquery/dist/jquery.min',
-                        'text': '../lib/requirejs-text/text',
-                        'jquery-ui': '../lib/jquery-ui/ui'
-                    },
-
-                    packages: [{
-                        name: 'modal',
-                        location: 'components/modal'
-                    }],
-                    skipDirOptimize: true,
-                    optimize: 'uglify2',
-                    removeCombined: true,
+                    skipModuleInsertion: false,
+                    optimize: 'none',
+                    removeCombined: false,
+                    preserveLicenseComments: false,
                     findNestedDependencies: true
+                }
+            }
+        },
+        htmlbuild: {
+            build: {
+                src: 'src/index.html',
+                dest: 'build/',
+                options: {
+                    beautify: true,
+                    scripts: {
+                        main: 'build/scripts/main.js'
+                    }
                 }
             }
         }
@@ -101,5 +96,6 @@ module.exports = function(grunt) {
     });
 
     grunt.registerTask('default', ['server']);
-    grunt.registerTask('build', ['requirejs:compile']);
+    grunt.registerTask('build', ['requirejs', 'htmlbuild']);
+    grunt.registerTask('html', ['htmlbuild:build']);
 };

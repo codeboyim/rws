@@ -20,6 +20,7 @@
     "requirejs-text": "~2.0.12",
     "normalize.css": "~3.0.2",
     "jquery-ui": "~1.11.1",
-    "fontawesome": "~4.2.0"
+    "fontawesome": "~4.2.0",
+    "almond": "~0.3.0"
   }
 }

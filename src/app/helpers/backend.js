@@ -1,6 +1,6 @@
-define(function(require) {
-    var store = require('./store'),
-        $ = require('jquery');
+define(['require', './store', 'jquery'], function(require, store, $) {
+    // var store = require('./store'),
+    //     $ = require('jquery');
 
     return {
 
@@ -33,46 +33,6 @@ define(function(require) {
 
         },
 
-        _getAjaxBundleRefData: function(refDataHash) {
-            var fields = _.keys(refDataHash),
-                refData = {},
-                url = $PAN$APPROOT + 'Governance/AS3959.aspx/GetRefData';
-
-            return $.Deferred(function(d) {
-                $.when.apply($, _.map(fields, function(f) {
-                    return $.ajax({
-                        url: url,
-                        type: 'POST',
-                        contentType: "application/json; charset=utf-8",
-                        data: $PAN$JSON.serialize({
-                            code: refDataHash[f]
-                        }),
-                        dataType: 'json'
-                    })
-                })).done(function() {
-                    var resps;
-
-                    if (fields.length > 1) {
-                        resps = [].slice.apply(arguments);
-                    } else {
-                        resps = [
-                            [].slice.apply(arguments)
-                        ];
-                    }
-
-                    _.each(fields, function(f, i) {
-                        refData[f] = (resps[i][0].d || resps[i][0]).result || null;
-                    });
-
-                    d.resolve(refData);
-
-                }).fail(function(res) {
-                    res.responseText;
-                }).always(function() {});
-            }).promise();
-
-
-        },
         /** call server to retrieve reference data */
         _getRefData: function(code) {
 
@@ -98,12 +58,6 @@ define(function(require) {
             return this._getBundleRefData({
                 'NoteTypes': 'notetype',
                 'NoteStatuses': 'notestat'
-            });
-        },
-
-        getRescheduleReasons: function(cb) {
-            return this._getAjaxBundleRefData({
-                'Reschedule': 'reschedule'
             });
         },
 
