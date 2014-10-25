@@ -16,6 +16,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-requirejs');
     grunt.loadNpmTasks('grunt-open');
     grunt.loadNpmTasks('grunt-html-build');
+    grunt.loadNpmTasks('grunt-contrib-clean');
 
     grunt.initConfig({
 
@@ -68,10 +69,12 @@ module.exports = function(grunt) {
                     optimize: 'none',
                     removeCombined: false,
                     preserveLicenseComments: false,
-                    findNestedDependencies: true
+                    findNestedDependencies: true,
+                    keepBuildDir:true
                 }
             }
         },
+
         htmlbuild: {
             build: {
                 src: 'src/index.html',
@@ -83,6 +86,32 @@ module.exports = function(grunt) {
                     }
                 }
             }
+        },
+
+        clean: {
+            options: {
+                force: true
+            },
+            build: {
+                expand: true,
+                cwd: 'build',
+                src: ['app','lib/**/*', 'lib', 'styles/**/*', '!styles/main.css']
+            }
+        },
+
+        buildcontrol: {
+            options: {
+                dir: 'build',
+                commit: true,
+                push: true,
+                message: 'Built %sourceName% from commit %sourceCommit% on branch %sourceBranch%'
+            },
+            pages: {
+                options: {
+                    remote: 'git@github.com:example_user/example_webapp.git',
+                    branch: 'gh-pages'
+                }
+            },
         }
 
     });
@@ -96,6 +125,6 @@ module.exports = function(grunt) {
     });
 
     grunt.registerTask('default', ['server']);
-    grunt.registerTask('build', ['requirejs', 'htmlbuild']);
-    grunt.registerTask('html', ['htmlbuild:build']);
+    grunt.registerTask('build', ['requirejs', 'htmlbuild', 'clean']);
+    grunt.registerTask('deploy', ['buildcontrol']);
 };
