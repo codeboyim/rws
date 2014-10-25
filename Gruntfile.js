@@ -97,7 +97,13 @@ module.exports = function(grunt) {
             build: {
                 expand: true,
                 cwd: 'build',
-                src: ['app', 'lib/**/*', 'lib', 'styles/**/*', '!styles/main.css', 'gitignore']
+                src: ['app',
+                    'lib/!(fontawesome)',
+                    'lib/fontawesome/!(fonts)',
+                    'lib/fontawesome/.*',
+                    // 'lib/fontawesome/{.bower.json,.gitignore,.npmignore}',
+                    'styles/**/*', '!styles/main.css', 'gitignore'
+                ]
             }
         },
 
@@ -138,7 +144,7 @@ module.exports = function(grunt) {
     });
 
     grunt.registerTask('default', ['server']);
-    grunt.registerTask('build', ['requirejs', 'htmlbuild', 'clean']);
+    grunt.registerTask('build', ['requirejs', 'htmlbuild', 'clean', 'copy']);
+    grunt.registerTask('cls', ['clean:build']);
     grunt.registerTask('deploy', ['buildcontrol:pages']);
-    grunt.registerTask('cp', ['copy']);
 };

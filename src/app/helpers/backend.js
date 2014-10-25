@@ -1,6 +1,6 @@
-define(['require', './store', 'jquery'], function(require, store, $) {
-    // var store = require('./store'),
-    //     $ = require('jquery');
+define(function(require) {
+    var store = require('./store'),
+        $ = require('jquery');
 
     return {
 
