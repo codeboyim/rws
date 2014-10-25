@@ -1,4 +1,8 @@
+# to be copied and renamed to .gitignore in the build process
+# to be used for deloying to Github hg-pages branch
+
 # Unignore everything
 !**/*
 
-gitignore
+# to ignore after build
+build.txt
