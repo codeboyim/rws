@@ -1,7 +1,13 @@
-RealWork Sample
+[RealWork Sample](http://codeboyim.github.io/rws/)
 ===============
 
 This sample project demonstrates a common input screen in the RealWork and how such a screen is developed recently using a more *modern* Web development approach.
+
+Demo
+----
+
+Play it [**here**](http://codeboyim.github.io/rws/)
+
 
 Features
 ----
@@ -31,6 +37,8 @@ There are few more things which are not used or applicable in the RealWork, but 
 - [Grunt], the JavaScript task runner, and its powerful plug-ins to optimize and build the project
 - [fontawesome], the replacement for the images used in the RealWork 
 - Some CSS3 to improve the UI/UX
+
+
 
 
 License
