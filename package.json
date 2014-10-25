@@ -1,7 +1,7 @@
 {
   "name": "Demo",
   "version": "0.0.1",
-  "description": "A demo shows a better organized and modularized front-end development in core product",
+  "description": "Code demonstration of a common input screen in the RealWork",
   "author": "Yang Bai <yangb@pansoftware.com.au>",
   "license": "MIT",
   "devDependencies": {

@@ -14,9 +14,11 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-contrib-connect');
     grunt.loadNpmTasks('grunt-contrib-requirejs');
+    grunt.loadNpmTasks('grunt-contrib-clean');
+    grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-open');
     grunt.loadNpmTasks('grunt-html-build');
-    grunt.loadNpmTasks('grunt-contrib-clean');
+    grunt.loadNpmTasks('grunt-build-control');
 
     grunt.initConfig({
 
@@ -70,7 +72,7 @@ module.exports = function(grunt) {
                     removeCombined: false,
                     preserveLicenseComments: false,
                     findNestedDependencies: true,
-                    keepBuildDir:true
+                    keepBuildDir: true
                 }
             }
         },
@@ -95,7 +97,7 @@ module.exports = function(grunt) {
             build: {
                 expand: true,
                 cwd: 'build',
-                src: ['app','lib/**/*', 'lib', 'styles/**/*', '!styles/main.css']
+                src: ['app', 'lib/**/*', 'lib', 'styles/**/*', '!styles/main.css', 'gitignore']
             }
         },
 
@@ -108,10 +110,21 @@ module.exports = function(grunt) {
             },
             pages: {
                 options: {
-                    remote: 'git@github.com:example_user/example_webapp.git',
+                    remote: 'git@github.com:codeboyim/rws.git',
                     branch: 'gh-pages'
                 }
             },
+        },
+
+        copy: {
+            build: {
+                expand: true,
+                src: 'src/gitignore',
+                dest: 'build/',
+                rename: function(desc, src) {
+                    return 'build/.gitignore'
+                }
+            }
         }
 
     });
@@ -126,5 +139,6 @@ module.exports = function(grunt) {
 
     grunt.registerTask('default', ['server']);
     grunt.registerTask('build', ['requirejs', 'htmlbuild', 'clean']);
-    grunt.registerTask('deploy', ['buildcontrol']);
+    grunt.registerTask('deploy', ['buildcontrol:pages']);
+    grunt.registerTask('cp', ['copy']);
 };

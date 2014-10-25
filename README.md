@@ -33,6 +33,10 @@ There are few more things which are not used or applicable in the RealWork, but 
 - Some CSS3 to improve the UI/UX
 
 
+License
+----
+
+MIT
 
 [Backbone.js]:http://backbonejs.org/
 [RequireJS]:http://requirejs.org/
