@@ -1,22 +1,26 @@
 define(function(require) {
     var store = require('./store'),
-        $ = require('jquery');
+        $ = require('jquery'),
+        loader = require('loader'),
+
+        /**
+         * network throtting simulation in ms
+         * @type {Number}
+         */
+        mimicAjaxDelay = 2000;
 
     return {
 
         /**
          * retrieve bundled reference data
-         * @param {object=} cb - hash object of optional callbacks for interested field, e.g. {'NoteTypes': {success:function(object=), failed:function(): always:function(), ... }}
-         * @param {object} refDataHash - hash object whose keys are interested field names and values are respective codes, e.g. {'NoteTypes': 'notetype', ...}
+         * @param {Object} refDataHash - hash object whose keys are interested field names and values are respective codes, e.g. {'NoteTypes': 'notetype', ...}
          */
         _getBundleRefData: function(refDataHash) {
-            var _this = this,
-                refData = {},
+            var refData = {},
                 fields = _.keys(refDataHash),
                 codes = _.values(refDataHash);
 
-            return $
-                .when.apply($,
+            return $.when.apply($,
                     _.map(codes,
                         _.bind(function(code) {
                             return this._getRefData(code);
@@ -33,25 +37,20 @@ define(function(require) {
 
         },
 
-        /** call server to retrieve reference data */
+        /**
+         * retrieve reference data
+         * @param  {String} code
+         * @return {Object} $.promise
+         */
         _getRefData: function(code) {
+            loader.start();
 
             return $.Deferred(function(deferred) {
-                //mimic the networking delay
                 window.setTimeout(function() {
                     deferred.resolve(store[code]);
-                }, 1000);
+                    loader.stop();
+                }, mimicAjaxDelay);
             }).promise();
-        },
-
-        getRefData: function(cb, code) {
-            return this._getRefData(cb, code);
-        },
-
-        getAS3959RefData: function(cb) {
-            return $.Deferred(function(d) {
-                d.resolve();
-            });
         },
 
         getNoteRefData: function() {
@@ -74,7 +73,6 @@ define(function(require) {
         },
 
         getAssessmentRefData: function() {
-
             return this._getBundleRefData({
                 'VegClasses': 'vegetationclass',
                 'Separations': 'separation',
@@ -96,33 +94,39 @@ define(function(require) {
         },
 
         getSubRefData: function(id) {
+            loader.start();
 
             return $.Deferred(function(d) {
                 window.setTimeout(function() {
                     d.resolve(store.subrefdata[id] || null);
-                }, 500);
+                    loader.stop();
+                }, mimicAjaxDelay);
             }).promise();
         },
 
         saveRisk: function(risk) {
+            loader.start();
 
             return $.Deferred(function(d) {
 
                 window.setTimeout(function() {
                     store.risks.push(risk.toJSON());
                     d.resolve(risk.toJSON());
-                }, 500);
+                    loader.stop();
+                }, mimicAjaxDelay);
 
             }).promise();
         },
 
         getRiskById: function(id) {
+            loader.start();
 
             return $.Deferred(function(d) {
 
                 window.setTimeout(function() {
                     d.resolve(store.risks[store.risks.length - 1] || null);
-                }, 500);
+                    loader.stop();
+                }, mimicAjaxDelay);
 
             }).promise();
         }

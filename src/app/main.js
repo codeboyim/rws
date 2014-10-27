@@ -1,12 +1,19 @@
 define(function(require) {
     var _ = require('underscore'),
         store = require('helpers/store'),
+        loader = require('loader'),
         riskView = new(require('risk/view'))({
             el: document.getElementById('appContainer')
+        }).on('rendered', function() {
+            loader.stop();
         });
 
     riskView.render();
-
+    
+    /**
+     * APIs for testing from console
+     * @exports app
+     */
     return {
         log: function() {
             console.log(JSON.stringify(riskView.model.toJSON()));
@@ -20,6 +27,7 @@ define(function(require) {
             riskView.model.clear({
                 silent: true
             }).set(store.risks[store.risks.length - 1]).setDirty(false);
-        }
+        },
+        loader: require('loader')
     }
 });

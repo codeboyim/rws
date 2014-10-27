@@ -1,4 +1,5 @@
 @import "components/modal/style.css";
+@import "components/loader/style.css";
 @import "components/risk/style.css";
 @import "components/analysis/style.css";
 @import "components/factor/style.css";
