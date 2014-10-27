@@ -9,7 +9,7 @@
 }
 .compModalOverlay {
     position: absolute;
-    background-color: #000;
+    background-color: #ccc;
     opacity: 0.4;
 }
 .compModalWrap {

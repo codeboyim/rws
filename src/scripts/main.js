@@ -22,11 +22,16 @@ require.config({
     }, {
         name: 'modal',
         location: 'components/modal'
+    }, {
+        name: 'loader',
+        location: 'components/loader'
     }]
 
 });
 
-
+require(['loader'], function(loader) {
+    loader.start();
+});
 require(['app'], function(app) {
     $.noConflict();
     window.app = app;
