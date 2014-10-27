@@ -19,6 +19,8 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-open');
     grunt.loadNpmTasks('grunt-html-build');
     grunt.loadNpmTasks('grunt-build-control');
+    grunt.loadNpmTasks('grunt-rev');
+
 
     grunt.initConfig({
 
@@ -84,7 +86,10 @@ module.exports = function(grunt) {
                 options: {
                     beautify: true,
                     scripts: {
-                        main: 'build/scripts/main.js'
+                        main: 'build/scripts/*.js'
+                    },
+                    styles: {
+                        main: 'build/styles/*.css'
                     }
                 }
             }
@@ -94,15 +99,17 @@ module.exports = function(grunt) {
             options: {
                 force: true
             },
-            build: {
+            prebuild: {
+                src: ['build/styles/**/*', 'build/scripts/**/*']
+            },
+            postbuild: {
                 expand: true,
                 cwd: 'build',
                 src: ['app',
                     'lib/!(fontawesome)',
                     'lib/fontawesome/!(fonts)',
                     'lib/fontawesome/.*',
-                    // 'lib/fontawesome/{.bower.json,.gitignore,.npmignore}',
-                    'styles/**/*', '!styles/main.css', 'gitignore'
+                    'styles/components', 'gitignore'
                 ]
             }
         },
@@ -131,6 +138,10 @@ module.exports = function(grunt) {
                     return 'build/.gitignore'
                 }
             }
+        },
+
+        rev: {
+            src: ['build/styles/*.css', 'build/scripts/*.js']
         }
 
     });
@@ -144,7 +155,7 @@ module.exports = function(grunt) {
     });
 
     grunt.registerTask('default', ['server']);
-    grunt.registerTask('build', ['requirejs', 'htmlbuild', 'clean', 'copy']);
+    grunt.registerTask('build', ['clean:prebuild', 'requirejs', 'rev', 'htmlbuild', 'clean:postbuild', 'copy']);
     grunt.registerTask('cls', ['clean:build']);
     grunt.registerTask('deploy', ['buildcontrol:pages']);
 };
