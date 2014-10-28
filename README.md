@@ -35,7 +35,8 @@ There are few more things which are not used or applicable in the RealWork, but 
 
 - [Bower], a package managemer, to load the required tools and utilities
 - [Grunt], the JavaScript task runner, and its powerful plug-ins to optimize and build the project
-- [fontawesome], the replacement for the images used in the RealWork 
+- [fontawesome], the replacement for the images used in the RealWork
+- a new modal component and loader component
 - Some CSS3 to improve the UI/UX
 
 
