@@ -73,7 +73,7 @@ define(function(require) {
                 case 'update':
 
                     if (this.isDirty()) {
-                        backend.saveRisk(model).done(function(props) {
+                        return backend.saveRisk(model).done(function(props) {
                             model.set(props).setDirty(false);
                         });
                     }
@@ -82,7 +82,7 @@ define(function(require) {
 
                 case 'read':
 
-                    backend.getRiskById(model.get('id')).done(function(props) {
+                    return backend.getRiskById(model.get('id')).done(function(props) {
                         model.set(props).setDirty(false);
                     });
 

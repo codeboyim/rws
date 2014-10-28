@@ -1,6 +1,7 @@
 define(function(require) {
     var $ = require('jquery'),
-        _ = require('underscore');
+        _ = require('underscore')
+    alert = require('alert');
 
     return require('backbone').View.extend({
 
@@ -85,14 +86,6 @@ define(function(require) {
                     this._getByName('AssetOwner').val(val || '');
                     break;
 
-                    // case 'change:Analyses':
-                    //     this._analysisListView.collection.reset(val);
-                    //     break;
-
-                    // case 'change:RiskFactors':
-                    //     this._factorListView.collection.reset(val);
-                    //     break;
-
                 case 'change:activeStep':
                     this._get('button[data-inactivestep]').prop('disabled', false);
                     this._get('button[data-inactivestep="' + val + '"]').prop('disabled', true);
@@ -136,22 +129,23 @@ define(function(require) {
                         break;
 
                     case 'save':
-                        this.model.save();
+                        this.model.save().done(function() {
+                            alert('Risk information saved', 'success');
+                        });
                         break;
 
 
                     case 'reset':
-                        if (!this.model.isDirty() || confirm('You may lose any unsaved changes.\r\nDo you want to continue?')) {
-                            this.model.set(new this.model.defaults).setDirty(false);
-                        }
-                        break;
-
                     case 'reload':
-
-                        if (!this.model.isDirty() || confirm('You may lose any unsaved changes.\r\nDo you want to continue?')) {
-                            this.model.fetch();
+                        if (!this.model.isDirty()) {
+                            this._reloadModel(cmd);
+                        } else {
+                            alert('You may lose any unsaved changes.\r\nDo you want to continue?', 'warning', function() {
+                                this._reloadModel(cmd);
+                            }, function() {}, this);
                         }
                         break;
+
                 }
             } else if (type === 'keyup') {
                 /*cared input name is after the corresponding prop's name*/
@@ -166,9 +160,17 @@ define(function(require) {
             }
         },
 
+        _reloadModel: function(cmd) {
+            if (cmd === 'reset') {
+                this.model.set(new this.model.defaults).setDirty(false);
+            } else {
+                this.model.fetch();
+            }
+        },
+
         _beforeunload: function() {
             if (this.model.isDirty()) {
-                return 'You may lose any unsaved changes.\r\nDo you want to continue?';
+                return 'You may lose any unsaved changes.';
             }
         },
 

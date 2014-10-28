@@ -1,7 +1,10 @@
 ﻿.compNoteListModal {
     width: 80rem;
     min-height: 40rem;
+    top: 10rem;
+    margin-top:0;
 }
+
 .compNoteListTable {
     table-layout: fixed;
 :}
@@ -14,6 +17,8 @@
 .compNoteModal {
     width: 80rem;
     min-height: 32rem;
+    top: 10rem;
+    margin-top:0;
 }
 .compNoteListBottomButtons {
     position: absolute;

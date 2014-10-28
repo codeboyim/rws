@@ -118,7 +118,7 @@ module.exports = function(grunt) {
             options: {
                 dir: 'build',
                 commit: true,
-                push: true,
+                push: false,
                 message: 'Built %sourceName% from commit %sourceCommit% on branch %sourceBranch%'
             },
             pages: {
@@ -156,6 +156,5 @@ module.exports = function(grunt) {
 
     grunt.registerTask('default', ['server']);
     grunt.registerTask('build', ['clean:prebuild', 'requirejs', 'rev', 'htmlbuild', 'clean:postbuild', 'copy']);
-    grunt.registerTask('cls', ['clean:build']);
     grunt.registerTask('deploy', ['buildcontrol:pages']);
 };

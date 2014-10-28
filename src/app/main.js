@@ -27,7 +27,6 @@ define(function(require) {
             riskView.model.clear({
                 silent: true
             }).set(store.risks[store.risks.length - 1]).setDirty(false);
-        },
-        loader: require('loader')
+        }
     }
 });

@@ -1,0 +1,21 @@
+<div class="compAlert">
+    <div class="row">
+        <div class="col col-2 text-center">
+            <i class="fa fa-<%=this._faicon%>"></i>
+        </div>
+        <div class="col col-9">
+            <%-this._message%>
+        </div>
+    </div>
+    <%if(this._buttons.length){%>
+        <div class="row">
+            <div class="col text-center">
+                <%_.each(this._buttons, function(btn){if(btn.text){%>
+                    <button data-click="<%=btn.key%>">
+                        <%-btn.text%>
+                    </button>
+                    <%}});%>
+            </div>
+        </div>
+        <%}%>
+</div>

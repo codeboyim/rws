@@ -36,6 +36,9 @@
 .col-9 {
     width: 75%;
 }
+.col-10 {
+    width: 83.33%;
+}
 .col-offset-1 {
     margin-left:8.33%;
 }
