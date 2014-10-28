@@ -31,11 +31,11 @@ Tech
 Extras
 ----
 
-There are few more things which are not used or applicable in the RealWork, but have been added here for the integrity of the project and in my very own interest.
+There are few more things which are not existing or applicable in the RealWork, but have been added here for the integrity of the project and in my very own interest.
 
 - [Bower], a package managemer, to load the required tools and utilities
 - [Grunt], the JavaScript task runner, and its powerful plug-ins to optimize and build the project
-- [fontawesome], the replacement for the images used in the RealWork 
+- [fontawesome], the replacement for the images used in the RealWork
 - Some CSS3 to improve the UI/UX
 
 
