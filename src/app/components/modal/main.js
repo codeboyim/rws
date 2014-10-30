@@ -23,7 +23,7 @@ define(function(require) {
                     //prevent double scrollbars when modal shows
                     $(document.body).css('overflow', 'hidden');
                 } else {
-                    _views[0].$el.hide();
+                    _views[0].hide();
                 }
 
                 view.render(content, className).$el.appendTo(_container);
@@ -41,7 +41,7 @@ define(function(require) {
                         $(document.body).css('overflow', '');
                     } else {
 
-                        _views[0].$el.show();
+                        _views[0].show();
                     }
 
                 });
@@ -56,7 +56,7 @@ define(function(require) {
                         _views[0].close();
                     }
                 } else if (args[0] && args[0].type === 'click') {
-                    if (~args[0].target.className.indexOf('compModalOverlay')) {
+                    if (~args[0].target.className.indexOf('compModalWrap')) {
                         _views[0].close();
                     }
                 } else {

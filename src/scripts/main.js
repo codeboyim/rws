@@ -25,6 +25,9 @@ require.config({
     }, {
         name: 'loader',
         location: 'components/loader'
+    }, {
+        name: 'alert',
+        location: 'components/alert'
     }]
 
 });

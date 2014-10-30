@@ -29,6 +29,7 @@ input[type=submit],
     -webkit-border-radius: 3px;
     -moz-border-radius: 3px;
     border-radius: 3px;
+    margin:0 0.5rem;
 }
 button.secondary,
 input[type=submit].secondary,

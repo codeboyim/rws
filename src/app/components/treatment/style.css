@@ -7,4 +7,6 @@
 .compTreatmentModal {
     width: 80rem;
     height: 60rem;
+    top: 8rem;
+    margin-top:0;
 }
