@@ -2,7 +2,8 @@ define(function(require) {
     var Backbone = require('backbone'),
         _ = require('underscore'),
         $ = require('jquery'),
-        Model = require('./model');
+        Model = require('./model'),
+        alert = require('alert');
 
     var exports = Backbone.View.extend({
         template: _.template(require('text!./template.html')),
@@ -68,14 +69,23 @@ define(function(require) {
 
         remove: function() {
 
-            if (this.model.isDirty() && !confirm('You may lose unsaved changes.\r\nDo you want to continue?')) {
-                return;
-            }
+            $.Deferred(_.bind(function(deferred) {
 
-            $(window).off('beforeunload', this._windowUnload);
-            this._get('.date-field').datepicker('destroy');
-            Backbone.View.prototype.remove.apply(this);
-            this.trigger('removed', this);
+                if (!this.model.isDirty()) {
+                    deferred.resolve();
+                } else {
+                    alert('You may lose unsaved changes.\r\nDo you want to continue?', 'warning', function() {
+                        deferred.resolve();
+                    }, function() {});
+                }
+            }, this)).done(_.bind(function() {
+
+                $(window).off('beforeunload', this._windowUnload);
+                this._get('.date-field').datepicker('destroy');
+                Backbone.View.prototype.remove.apply(this);
+                this.trigger('removed', this);
+
+            }, this));
         },
 
         _domEvents: function(e) {
@@ -174,7 +184,7 @@ define(function(require) {
                 options = arguments[3];
 
             if (eventName === 'invalid') {
-                console.warn(this.model.validationError);
+                alert(this.model.validationError, 'warning');
             } else if (eventName === 'change') {
 
                 defaults = this.model.defaults();
@@ -211,7 +221,7 @@ define(function(require) {
 
         _windowUnload: function() {
             if (this.model.isDirty()) {
-                return 'You may lose unsaved changes.\r\nDo you want to continue?';
+                return 'You may lose unsaved changes.';
             }
         },
 

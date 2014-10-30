@@ -5,7 +5,6 @@ define(function(require) {
         _views = [],
         _container = null;
 
-
     var exports = _.extend({
 
             show: function(content, className) {
@@ -30,8 +29,8 @@ define(function(require) {
 
                 _views.unshift(view);
 
-                this.listenTo(view, 'removed', function() {
-                    _views.shift();
+                this.listenTo(view, 'removed', function(v) {
+                    _views.splice(_views.indexOf(v), 1);
 
                     if (!_views.length) {
                         _container.off('click');

@@ -27,3 +27,9 @@
 .text-right {
     text-align: right;
 }
+.required{
+    color:#e14743;
+    opacity:1;
+    line-height: 2.2rem;
+    height: 2.2rem;
+}

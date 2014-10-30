@@ -31,8 +31,8 @@ define(function(require) {
             this.show('openning');
 
             this.listenTo(content, {
-                'removed': function() {
-                    if (this._status === 'closing') {
+                'removed': function(view) {
+                    if (this._status === 'closing' || view.$el.is(':hidden')) {
                         this.remove();
                     } else {
                         this.close();

@@ -50,20 +50,8 @@ define(function(require) {
             }
 
 
-            if (!attrs['TypeID']) {
-                msg.push('You must select an Analysis Type');
-            }
-
-            if (_.isNull(attrs['DateAssessed'])) {
-                msg.push('You must select the Date of Risk Assessment');
-            }
-
-            if (!attrs['AssessorName']) {
-                msg.push('You must select a Risk Assessor');
-            }
-
-            if (!attrs['AssessmentTeam']) {
-                msg.push('You must enter Assessment Team');
+            if (!attrs['TypeID'] || _.isNull(attrs['DateAssessed']) || !attrs['AssessorName'] || !attrs['AssessmentTeam']) {
+                msg = 'Please fill all the required fields';
             }
 
             if (msg.length > 0) {
@@ -71,6 +59,10 @@ define(function(require) {
             }
         },
 
+        /**
+         * covert view-model to data transfer object in order to save
+         * @return {object}
+         */
         toServerObject: function() {
             var obj = {},
                 d;
@@ -90,6 +82,10 @@ define(function(require) {
 
     });
 
+    /**
+     * view-model to DTO attributes mapping
+     * @type {Object}
+     */
     exports._modelObjectMap = {
         'RecordID': 'RecordID',
         'TypeID': 'AnalysisTypeID',
@@ -103,6 +99,11 @@ define(function(require) {
         'TotalCost': 'AssessCost'
     };
 
+    /**
+     * convert DTO to view-model
+     * @param  {object} servObj - DTO retrieved from Service API
+     * @return {[type]}
+     */
     exports.fromServerObject = function(servObj) {
         var model = {};
 
