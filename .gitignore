@@ -91,3 +91,6 @@ sftp-config.json
 
 # glue files
 *.glue
+
+#atom development server
+*.developmentserverrc
