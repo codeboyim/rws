@@ -184,7 +184,7 @@ define(function(require) {
                 options = arguments[3];
 
             if (eventName === 'invalid') {
-                alert(this.model.validationError, 'warning');
+                alert(this.model.validationError);
             } else if (eventName === 'change') {
 
                 defaults = this.model.defaults();

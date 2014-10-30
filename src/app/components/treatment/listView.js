@@ -2,15 +2,12 @@ define(function(require) {
     var _ = require('underscore'),
         $ = require('jquery'),
         Model = require('./model'),
-        Collection = require('./collection'),
         EditStatus = require('classes/EditStatus'),
-        tmplListItem = require('text!./tmplListItem.htm'),
-        Modal = require('modal'),
-        View = require('./view');
+        alert = require('alert');
 
     var exports = require('backbone').View.extend({
 
-        tmplListItem: _.template(tmplListItem),
+        tmplListItem: _.template(require('text!./tmplListItem.htm')),
 
         events: {
             'click [data-click]': '_domEvents',
@@ -21,7 +18,7 @@ define(function(require) {
         initialize: function(options) {
 
             if (!this.collection) {
-                this.collection = new Collection([new Model]);
+                this.collection = new(require('./collection'))([new Model]);
             } else if (this.collection.length === 0) {
                 this.collection.add({}, {
                     silent: true
@@ -156,8 +153,7 @@ define(function(require) {
                         break;
 
                     case 'del':
-
-                        if (confirm('You are going to delete this Treatment.\r\nDo you want to continue?')) {
+                        alert('You are going to delete this Treatment.\r\nDo you want to continue?', 'warning', function() {
 
                             _.each(_.filter(this.collection.rest(idx + 1), this._nonDeleteFilter), function(t) {
                                 t.set({
@@ -178,7 +174,8 @@ define(function(require) {
                                 this.collection.add(new Model);
                             }
 
-                        }
+                        }, function() {}, this);
+
                         break;
 
                     case 'up':
@@ -214,7 +211,7 @@ define(function(require) {
                         break;
 
                     case 'edit':
-                        view = new View({
+                        view = new(require('./view'))({
                             model: new Model(treatment.toJSON()),
                         });
 
@@ -222,7 +219,7 @@ define(function(require) {
                             treatment.set(props);
                         });
 
-                        Modal.show(view, 'compTreatmentModal');
+                        require('modal').show(view, 'compTreatmentModal');
                         break;
 
                     case 'note':

@@ -3,7 +3,7 @@ define(function(require) {
         $ = require('jquery'),
         Model = require('./model'),
         EditStatus = require('classes/EditStatus'),
-        Modal = require('modal');
+        alert = require('alert');
 
     var exports = require('backbone').View.extend({
 
@@ -249,20 +249,24 @@ define(function(require) {
 
                     case 'rate':
 
-                        assessmentView = new(require('assessment/view'))({
-                            model: new(require('assessment/model'))(factor.get('Assessment'))
-                        });
+                        if (!factor.get('Assessment') || !factor.get('Assessment').AssetCategoryCode) {
+                            alert('Please select an Asset Category');
+                        } else {
+                            assessmentView = new(require('assessment/view'))({
+                                model: new(require('assessment/model'))(factor.get('Assessment'))
+                            });
 
-                        this.listenTo(assessmentView, {
-                            'removed': function(view) {
-                                this.stopListening(view);
-                            },
-                            'saved': function(props) {
-                                factor.set('Assessment', props).changeEditStatus(EditStatus.Update);
-                            }
-                        });
+                            this.listenTo(assessmentView, {
+                                'removed': function(view) {
+                                    this.stopListening(view);
+                                },
+                                'saved': function(props) {
+                                    factor.set('Assessment', props).changeEditStatus(EditStatus.Update);
+                                }
+                            });
 
-                        Modal.show(assessmentView, 'compAssessmentModal');
+                            require('modal').show(assessmentView, 'compAssessmentModal');
+                        }
                         break;
 
                     case 'add':
@@ -284,7 +288,7 @@ define(function(require) {
 
                     case 'del':
 
-                        if (confirm('You are going to delete this Risk Factor.\r\nDo you want to continue?')) {
+                        alert('You are going to delete this Risk Factor.\r\nDo you want to continue?', 'warning', function() {
 
                             _.each(_.filter(this.collection.rest(idx + 1), this._nonDeleteFilter), function(f) {
                                 f.set({
@@ -303,8 +307,7 @@ define(function(require) {
                             if (!this._findNonDeleteFactors().length) {
                                 this.collection.add(new Model);
                             }
-                        }
-
+                        }, function() {}, this);
                         break;
 
                     case 'up':

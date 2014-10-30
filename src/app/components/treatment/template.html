@@ -16,6 +16,9 @@
                         <%}); }%>
                 </select>
             </div>
+            <div class="col col-1">
+                <i class="fa fa-asterisk required"></i>
+            </div>
         </div>
         <div class="row">
             <div class="col col-3 col-offset-1">
@@ -26,6 +29,9 @@
                 <select name="TreatmentTypeID" class="full-width">
                     <option value="0">--</option>
                 </select>
+            </div>
+            <div class="col col-1">
+                <i class="fa fa-asterisk required"></i>
             </div>
         </div>
         <div class="row">
@@ -45,8 +51,7 @@
             <div class="col col-6 wrap-mandatory">
                 <select name="TreatmentManagerID" class="full-width">
                     <option value="0">--</option>
-                    <% if(this.refData && _.isArray(this.refData.TreatmentManagers)){ 
-                        _.each(this.refData.TreatmentManagers, function(manager){ %>
+                    <% if(this.refData && _.isArray(this.refData.TreatmentManagers)){ _.each(this.refData.TreatmentManagers, function(manager){ %>
                         <option value="<%-manager.id%>">
                             <%-manager.desc%>
                         </option>
@@ -62,8 +67,7 @@
             <div class="col col-6 wrap-mandatory">
                 <select name="BushfireManagementZoneID" class="full-width">
                     <option value="0">--</option>
-                    <% if(this.refData && _.isArray(this.refData.BushfireManagementZones)){
-                     _.each(this.refData.BushfireManagementZones, function(zone){ %>
+                    <% if(this.refData && _.isArray(this.refData.BushfireManagementZones)){ _.each(this.refData.BushfireManagementZones, function(zone){ %>
                         <option value="<%-zone.id%>">
                             <%-zone.desc%>
                         </option>

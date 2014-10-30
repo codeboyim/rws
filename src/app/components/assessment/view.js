@@ -74,13 +74,20 @@
 
         remove: function() {
 
-            if (this.model.isDirty() && !confirm('You may lose any unsaved changes.\r\nDo you want to continue?')) {
-                return;
-            }
+            $.Deferred(_.bind(function(deferred) {
+                if (!this.model.isDirty()) {
+                    deferred.resolve();
+                } else {
+                    alert('You may lose any unsaved changes.\r\nDo you want to continue?', 'warning', function() {
+                        deferred.resolve();
+                    }, function() {});
+                }
+            }, this)).done(_.bind(function() {
+                $(window).off('beforeunload', this._beforeunload);
+                require('backbone').View.prototype.remove.apply(this);
+                this.trigger('removed', this);
+            }, this));
 
-            $(window).off('beforeunload', this._beforeunload);
-            require('backbone').View.prototype.remove.apply(this);
-            this.trigger('removed', this);
         },
 
         _modelChanged: function(event) {
@@ -98,7 +105,7 @@
 
             switch (event) {
                 case 'invalid':
-                    console.warn(this.model.validationError);
+                    alert(this.model.validationError);
                     break;
 
                 case 'change:VegetationClassID':
@@ -203,7 +210,10 @@
                 val,
                 silent = false;
 
+            e.stopPropagation();
+
             if (type === 'click') {
+                e.preventDefault();
 
                 switch (cmd) {
 
@@ -260,7 +270,7 @@
         _beforeunload: function(e) {
 
             if (this.model.isDirty()) {
-                return 'You may lose any unsaved changes.\r\nDo you want to continue?';
+                return 'You may lose any unsaved changes.';
             }
 
         },

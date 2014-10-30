@@ -2,7 +2,7 @@
     <div class="col col-3">
         Level of Impact
     </div>
-    <div class="col col-9 radio-group">
+    <div class="col col-8 radio-group">
         <%_.each(this.refData.ImpactLevels, function(d){%>
             <label>
                 <input name="ImpactLevelID" type="radio" value="<%=d.id%>">
@@ -10,17 +10,23 @@
             </label>
             <%});%>
     </div>
+    <div class="col col-1">
+        <i class="fa fa-asterisk required"></i>
+    </div>
 </div>
 <div class="row">
     <div class="col col-3">
         Recovery Costs:
     </div>
-    <div class="col col-9 radio-group">
+    <div class="col col-8 radio-group">
         <%_.each(this.refData.RecoveryCosts, function(d){%>
             <label>
                 <input name="RecoveryCostsID" type="radio" value="<%=d.id%>">
                 <%=d.desc%>
             </label>
             <%});%>
+    </div>
+    <div class="col col-1">
+        <i class="fa fa-asterisk required"></i>
     </div>
 </div>

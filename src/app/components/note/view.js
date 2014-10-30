@@ -104,7 +104,7 @@
                 }, this);
 
             } else if (event === 'invalid') {
-                alert(this.model.validationError, 'warning');
+                alert(this.model.validationError);
             }
 
         },

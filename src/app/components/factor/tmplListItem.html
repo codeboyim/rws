@@ -3,7 +3,7 @@
         <div class="row">
             <div class="col">
                 <select name="AssetCategoryID" class="full-width">
-                    <option value="0">---</option>
+                    <option value="0">-- Asset Category --</option>
                     <% if(assetCategories && assetCategories.length>0){ _.each(assetCategories , function (item){ %>
                         <option value="<%= item.id %>">
                             <%- item.desc %>
@@ -15,7 +15,7 @@
         <div class="row">
             <div class="col">
                 <select name="AssetSubCategoryID" class="full-width">
-                    <option value="0">---</option>
+                    <option value="0">-- Asset Sub Category --</option>
                 </select>
             </div>
         </div>

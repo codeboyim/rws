@@ -2,7 +2,7 @@
     <div class="col col-3">
         Conservation Status:
     </div>
-    <div class="col col-9 radio-group">
+    <div class="col col-8 radio-group">
         <%_.each(this.refData.ConservationStatus, function(d){%>
             <label>
                 <input name="ConservationStatusID" type="radio" value="<%=d.id%>">
@@ -10,12 +10,15 @@
             </label>
             <%});%>
     </div>
+    <div class="col col-1">
+        <i class="fa fa-asterisk required"></i>
+    </div>
 </div>
 <div class="row">
     <div class="col col-3">
         Geographic Extent:
     </div>
-    <div class="col col-9 radio-group">
+    <div class="col col-8 radio-group">
         <%_.each(this.refData.GeographicExtents, function(d){%>
             <label>
                 <input name="GeographicExtentID" type="radio" value="<%=d.id%>">
@@ -23,17 +26,23 @@
             </label>
             <%});%>
     </div>
+    <div class="col col-1">
+        <i class="fa fa-asterisk required"></i>
+    </div>
 </div>
 <div class="row">
     <div class="col col-3">
         Potential Impact of File:
     </div>
-    <div class="col col-9 radio-group">
+    <div class="col col-8 radio-group">
         <%_.each(this.refData.PotentialImpacts, function(d){%>
             <label>
                 <input name="PotentialImpactID" type="radio" value="<%=d.id%>">
                 <%=d.desc%>
             </label>
             <%});%>
+    </div>
+    <div class="col col-1">
+        <i class="fa fa-asterisk required"></i>
     </div>
 </div>

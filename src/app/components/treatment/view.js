@@ -82,14 +82,21 @@ define(function(require) {
 
         remove: function() {
 
-            if (this.model.isDirty() && !confirm('You may lose any unsaved changes.\r\nDo you want to continue?')) {
-                return;
-            }
+            $.Deferred(_.bind(function(deferred) {
+                if (!this.model.isDirty()) {
+                    deferred.resolve();
+                } else {
+                    alert('You may lose any unsaved changes.\r\nDo you want to continue?', 'warning', function() {
+                        deferred.resolve();
+                    }, function() {});
+                }
+            }, this)).done(_.bind(function() {
+                $(window).off('beforeunload', this._beforeunload);
+                this.$el.find('.date-field').datepicker('destroy');
+                require('backbone').View.prototype.remove.apply(this);
+                this.trigger('removed', this);
+            }, this));
 
-            $(window).off('beforeunload', this._beforeunload);
-            this.$el.find('.date-field').datepicker('destroy');
-            require('backbone').View.prototype.remove.apply(this);
-            this.trigger('removed', this);
         },
 
         _modelChanged: function(event) {
@@ -101,7 +108,7 @@ define(function(require) {
                 isPartOfPlan;
 
             if (event === 'invalid') {
-                console.warn(this.model.validationError);
+                alert(this.model.validationError);
                 return;
             }
 
@@ -310,7 +317,7 @@ define(function(require) {
         _beforeunload: function(e) {
 
             if (this.model.isDirty()) {
-                return 'You may lose any unsaved changes.\r\nDo you want to continue?';
+                return 'You may lose any unsaved changes.';
             }
         },
 
