@@ -12,8 +12,8 @@ define(function(require) {
 
         defaults: {
             'RecordID': null,
-            'AssetCategoryID': null,
-            'AssetSubCategoryID': null,
+            'AssetCategoryID': '0',
+            'AssetSubCategoryID': '0',
             'RiskFactorDesc': null,
             'Assessment': null,
             'Treatments': null,

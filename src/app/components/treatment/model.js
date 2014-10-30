@@ -30,17 +30,13 @@ define(function(require) {
         },
 
         validate: function(attrs, options) {
-            var msg = [];
+            var msg = '';
 
-            if (attrs.TreatmentStrategyID === '0') {
-                msg.push('You must select \"Treatment Strategy\"');
+            if (attrs.TreatmentStrategyID === '0' || attrs.TreatmentTypeID === '0') {
+                msg = 'Please select required fields';
             }
 
-            if (attrs.TreatmentTypeID === '0') {
-                msg.push('You must select \"Treatment\"');
-            }
-
-            return msg.length > 0 ? msg : false;
+            return msg || false;
         },
         _collectionPropertyChanged: function(event) {
 
