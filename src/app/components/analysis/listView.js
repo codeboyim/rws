@@ -69,9 +69,9 @@ define(function(require) {
 
                     case 'del':
 
-                        if (confirm('You are going to delete this analysis.\r\nDo you want to continue?')) {
+                        alert('You are going to delete this analysis.\r\nDo you want to continue?', 'warning', function() {
                             this.collection.remove($el.parents('tr:eq(0)').data('analysis'));
-                        }
+                        }, function() {}, this);
 
                         break;
                 }
