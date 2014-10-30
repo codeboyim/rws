@@ -1,6 +1,7 @@
 ﻿define(function(require) {
     var _ = require('underscore'),
-        $ = require('jquery');
+        $ = require('jquery'),
+        alert = require('alert');
 
     var exports = require('backbone').View.extend({
 
@@ -13,6 +14,7 @@
             'change select': '_domEvents',
             'keyup :text, textarea': '_domEvents'
         },
+
         initialize: function(options) {
             _.bindAll(this, '_windowUnload');
 
@@ -61,14 +63,23 @@
 
         remove: function() {
 
-            if (this.model.isDirty() && !confirm('You may lose unsaved changes.\r\nDo you want to continue?')) {
-                return;
-            }
+            $.Deferred(_.bind(function(deferred) {
 
-            this._$dateRaised.datepicker('destroy');
-            $(window).off('beforeunload', this._windowUnload);
-            require('backbone').View.prototype.remove.apply(this);
-            this.trigger('removed', this);
+                if (!this.model.isDirty()) {
+                    deferred.resolve();
+                } else {
+                    alert('You may lose unsaved changes.\r\nDo you want to continue?', 'warning', function() {
+                        deferred.resolve();
+                    }, function() {});
+                }
+            }, this)).done(_.bind(function() {
+
+                this._$dateRaised.datepicker('destroy');
+                $(window).off('beforeunload', this._windowUnload);
+                require('backbone').View.prototype.remove.apply(this);
+                this.trigger('removed', this);
+
+            }, this));
         },
 
         _modelChanged: function(event) {
@@ -91,9 +102,9 @@
                     }
 
                 }, this);
-                
+
             } else if (event === 'invalid') {
-                console.warn(this.model.validationError);
+                alert(this.model.validationError, 'warning');
             }
 
         },
@@ -101,7 +112,7 @@
         _windowUnload: function() {
 
             if (this.model.isDirty()) {
-                return 'You may lose any unsaved changes.\r\nDo you want to continue?';
+                return 'You may lose any unsaved changes.';
             }
         },
 

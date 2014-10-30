@@ -1,7 +1,8 @@
 ﻿define(function(require) {
     var $ = require('jquery'),
         _ = require('underscore'),
-        EditStatus = require('classes/EditStatus');
+        EditStatus = require('classes/EditStatus'),
+        alert = require('alert');
 
     var exports = require('backbone').View.extend({
 
@@ -77,7 +78,7 @@
                         break;
 
                     case 'del':
-                        if (confirm('You are going to delete this note.\r\nDo you want to continue?')) {
+                        alert('You are going to delete this note.\r\nDo you want to continue?', 'warning', function() {
 
                             if (note.isNew()) {
                                 this.collection.remove(note);
@@ -86,7 +87,7 @@
                             }
 
                             this.trigger('deleted', note);
-                        }
+                        }, function() {}, this);
                         break;
                 }
             }
