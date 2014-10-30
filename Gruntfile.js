@@ -106,9 +106,12 @@ module.exports = function(grunt) {
                 expand: true,
                 cwd: 'build',
                 src: ['app',
-                    'lib/!(fontawesome)',
+                    'lib/!(fontawesome|jquery-ui)',
                     'lib/fontawesome/!(fonts)',
                     'lib/fontawesome/.*',
+                    'lib/jquery-ui/!(themes)',
+                    'lib/jquery-ui/themes/!(flick)',
+                    'lib/jquery-ui/.*',
                     'styles/components', 'gitignore'
                 ]
             }
