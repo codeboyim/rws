@@ -13407,6 +13407,317 @@ return jQuery;
 }));
 
 
+define('text!modal/template.htm',[],function () { return '<div class="compModal">\r\n    <a title="Close" class="compModalCloseButton" href="javascript:void(0);" data-click="close"><i title="Close">&#x2716;</i>Close</a>\r\n</div>\r\n';});
+
+define('modal/view',['require','backbone','underscore','jquery','text!./template.htm'],function(require) {
+    var Backbone = require('backbone'),
+        _ = require('underscore'),
+        $ = require('jquery');
+
+    var exports = Backbone.View.extend({
+
+        template: _.template(require('text!./template.htm')),
+
+        attributes: {
+            'class': 'compModalWrap'
+        },
+
+        events: {
+            'click [data-click]': '_domEvents'
+        },
+
+        initialize: function() {
+            this._content = null;
+        },
+
+        render: function(content, className) {
+            var $modal;
+
+            this._content = content;
+            this._className = className;
+            this.$el.html(this.template());
+            this._$modal = this.$el.find('.compModal');
+            this._status = null;
+
+            this.show('openning');
+
+            this.listenTo(content, {
+                'removed': function(view) {
+                    if (this._status === 'closing' || view.$el.is(':hidden')) {
+                        this.remove();
+                    } else {
+                        this.close();
+                    }
+                },
+                'rendered': function() {
+                    this._content.$el.addClass('compModalContent');
+
+                    window.requestAnimationFrame(_.bind(function() {
+                        this._content.$el.addClass('compModalContentActive');
+                    }, this));
+
+                }
+            });
+
+            this.$el.on('transitionend webkitTransitionEnd oTransitionEnd MSTransitionEnd', _.bind(function() {
+
+                switch (this._status) {
+                    case 'openning':
+                        this._$modal.append(this._content.render().$el);
+                        break;
+                    case 'showing':
+                        this._content.$el.show();
+                        break;
+                    case 'hiding':
+                        this.trigger('hidden');
+                        break;
+                    case 'closing':
+                        this._content.remove();
+                        break;
+                }
+
+                this._status = null;
+            }, this));
+
+            return this;
+        },
+
+        _domEvents: function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (e.type === 'click' && $(e.currentTarget).data('click') === 'close') {
+                this.close();
+            }
+        },
+
+        remove: function() {
+            Backbone.View.prototype.remove.apply(this);
+            this.trigger('removed', this);
+        },
+
+        show: function(status) {
+
+            window.setTimeout(_.bind(function() {
+                this._status = status || 'showing';
+                this._$modal.addClass(this._className + ' compModalActive');
+            }, this), 60);
+
+        },
+
+        hide: function(status) {
+            this._content.$el.hide();
+            this._status = status || 'hidding';
+            this._$modal.removeClass(this._className).removeClass('compModalActive');
+        },
+        close: function() {
+            this.hide('closing');
+        }
+
+    });
+
+    return exports;
+});
+
+define('modal/main',['require','backbone','underscore','jquery','./view'],function(require) {
+    var Backbone = require('backbone'),
+        _ = require('underscore'),
+        $ = require('jquery'),
+        _views = [],
+        _container = null;
+
+    var exports = _.extend({
+
+            show: function(content, className) {
+                var view = new(require('./view')),
+                    container;
+
+                if (!_views.length) {
+
+                    _container = $('<div class="compModalContainer"><div class="compModalOverlay"></div></div>')
+                        .appendTo(document.body)
+                        .on('click', this.close);
+
+                    $(document).on('keydown', this.close);
+
+                    //prevent double scrollbars when modal shows
+                    $(document.body).css('overflow', 'hidden');
+                } else {
+                    _views[0].hide();
+                }
+
+                view.render(content, className).$el.appendTo(_container);
+
+                _views.unshift(view);
+
+                this.listenTo(view, 'removed', function(v) {
+                    _views.splice(_views.indexOf(v), 1);
+
+                    if (!_views.length) {
+                        _container.off('click');
+                        _container.remove();
+                        _container = null;
+                        $(document).off('keydown', this.close);
+                        $(document.body).css('overflow', '');
+                    } else {
+
+                        _views[0].show();
+                    }
+
+                });
+            },
+
+            close: function() {
+                var args = [].slice.apply(arguments);
+
+                if (args[0] && args[0].type === 'keydown') {
+
+                    if (args[0].keyCode === 27) {
+                        _views[0].close();
+                    }
+                } else if (args[0] && args[0].type === 'click') {
+                    if (~args[0].target.className.indexOf('compModalWrap')) {
+                        _views[0].close();
+                    }
+                } else {
+                    _views[0].close();
+
+                }
+            }
+        },
+        Backbone.Events);
+
+    return exports;
+});
+
+define('modal', ['modal/main'], function (main) { return main; });
+
+
+define('text!alert/template.html',[],function () { return '<div class="compAlert">\r\n    <div class="row">\r\n        <div class="col col-2 text-center">\r\n            <i class="fa fa-<%=this._faicon%>"></i>\r\n        </div>\r\n        <div class="col col-9">\r\n            <%-this._message%>\r\n        </div>\r\n    </div>\r\n    <%if(this._buttons.length){%>\r\n        <div class="row">\r\n            <div class="col text-center">\r\n                <%_.each(this._buttons, function(btn){if(btn.text){%>\r\n                    <button data-click="<%=btn.key%>">\r\n                        <%-btn.text%>\r\n                    </button>\r\n                    <%}});%>\r\n            </div>\r\n        </div>\r\n        <%}%>\r\n</div>\r\n';});
+
+define('alert/view',['require','underscore','jquery','backbone','text!./template.html','backbone'],function(require) {
+    var _ = require('underscore'),
+        $ = require('jquery');
+
+    var exports = require('backbone').View.extend({
+        template: _.template(require('text!./template.html')),
+
+        events: {
+            'click [data-click]': '_domEvents'
+        },
+        initialize: function(options) {
+            _.bindAll(this, 'remove');
+            this._message = options.message || '';
+            this._buttons = options.buttons || [];
+            this._type = options.type || 'notice';
+
+            switch (this._type) {
+                case 'success':
+                    this._faicon = 'check-circle';
+                    break;
+                case 'error':
+                    this._faicon = 'times-circle';
+                    break;
+                case 'warning':
+                    this._faicon = 'exclamation-triangle';
+                    break;
+                case 'notice':
+                default:
+                    this._faicon = 'exclamation-circle';
+                    break;
+            }
+        },
+
+        render: function() {
+            this.$el.html(this.template());
+            this.trigger('rendered', this);
+
+            // if (!this._buttons.length) {
+            //     window.setTimeout(this.remove, 5000);
+            // }
+
+            return this;
+        },
+        _domEvents: function(e) {
+            var action = $(e.currentTarget).data('click'),
+                button;
+
+            if (action) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                button = _.find(this._buttons, function(btn) {
+                    return btn.key === action;
+                });
+
+                if (button && _.isFunction(button.callback) && !button.callback.apply(this)) {
+                    this.remove();
+                }
+            }
+        },
+
+        remove: function() {
+            require('backbone').View.prototype.remove.call(this);
+            this.trigger('removed', this);
+        }
+    });
+
+    return exports;
+});
+
+define('alert/main',['require','underscore','modal','./view'],function(require) {
+    var _ = require('underscore');
+
+    var exports = function(message) {
+        var cancelCb,
+            okCb,
+            buttons = [],
+            args = [].slice.call(arguments, 1),
+            type = 'notice',
+            context = args[args.length - 1];
+
+
+        if (typeof args[0] !== 'string') {
+            args.unshift(type);
+        }
+
+        type = args[0];
+        okCb = args[1] || null;
+        cancelCb = args[2] || null;
+
+        if (typeof context !== 'object') {
+            context = null;
+        }
+
+        if (okCb && typeof(okCb) === 'function') {
+            buttons.push({
+                key: 'ok',
+                text: 'OK',
+                callback: _.bind(okCb, context)
+            });
+        }
+
+        if (cancelCb && typeof(cancelCb) === 'function') {
+            buttons.push({
+                key: 'cancel',
+                text: 'Cancel',
+                callback: _.bind(cancelCb, context)
+            });
+        }
+
+        require('modal').show(new(require('./view'))({
+            message: message,
+            buttons: buttons,
+            type: type
+        }), 'compAlertModal ' + type);
+    };
+
+    return exports;
+});
+
+define('alert', ['alert/main'], function (main) { return main; });
+
+
 define('text!risk/template.html',[],function () { return '<div class="compRisk">\r\n    <section data-activestep="0" class="compRiskStep<%=activeStep===0?\' active\':\'\'%>">\r\n        <fieldset>\r\n            <legend>Asset affected by this Risk</legend>\r\n            <div class="row">\r\n                <div class="col col-2 col-offset-2">\r\n                    <label for="assetName">Asset Name:</label>\r\n                </div>\r\n                <div class="col col-6">\r\n                    <input id="assetName" class="full-width" name="AssetName" type="text">\r\n                </div>\r\n            </div>\r\n            <div class="row">\r\n                <div class="col col-2 col-offset-2">\r\n                    <label for="assetId">Asset ID:</label>\r\n                </div>\r\n                <div class="col col-6">\r\n                    <input id="assetId" type="text" class="full-width" name="AssetID">\r\n                </div>\r\n            </div>\r\n            <div class="row">\r\n                <div class="col col-2 col-offset-2">\r\n                    <label for="owner">Owner:</label>\r\n                </div>\r\n                <div class="col col-6">\r\n                    <input id="owner" type="text" class="full-width" name="AssetOwner">\r\n                </div>\r\n            </div>\r\n        </fieldset>\r\n        <fieldset class="compRiskAnalyses">\r\n            <legend>Analyses used to assess this Risk</legend>\r\n            <div data-contentid="analysisListView"></div>\r\n        </fieldset>\r\n    </section>\r\n    <section data-activestep="1" class="compRiskStep<%=activeStep===1?\' active\':\'\'%>">\r\n        <fieldset>\r\n            <legend>Assessment</legend>\r\n            <div class="row">\r\n                <div data-contentid="factorListView" class="col">\r\n                </div>\r\n            </div>\r\n        </fieldset>\r\n    </section>\r\n    <div class="clearfix row compRiskButtonGroup radius">\r\n        <div class="col col-4">\r\n            <button data-inactivestep="0" data-click="go-prev" <%- activeStep===0? \'disabled\': \'\' %>>Prev</button>\r\n            <button data-inactivestep="1" data-click="go-next" <%- activeStep===1? \'disabled\': \'\' %>>Next</button>\r\n            <button data-click="show-notes">Notes</button>\r\n        </div>\r\n        <div class="col col-4 text-center">\r\n            <button data-click="reset">Reset</button>\r\n            <button data-click="reload">Load last saved</button>\r\n        </div>\r\n        <div class="col col-4">\r\n            <input class="right" type="submit" value="Save" data-click="save">\r\n        </div>\r\n    </div>\r\n</div>\r\n';});
 
 define('helpers/backend',['require','./store','jquery','loader'],function(require) {
@@ -13657,20 +13968,8 @@ define('analysis/model',['require','helpers/backend','underscore','classes/EditS
             }
 
 
-            if (!attrs['TypeID']) {
-                msg.push('You must select an Analysis Type');
-            }
-
-            if (_.isNull(attrs['DateAssessed'])) {
-                msg.push('You must select the Date of Risk Assessment');
-            }
-
-            if (!attrs['AssessorName']) {
-                msg.push('You must select a Risk Assessor');
-            }
-
-            if (!attrs['AssessmentTeam']) {
-                msg.push('You must enter Assessment Team');
+            if (!attrs['TypeID'] || _.isNull(attrs['DateAssessed']) || !attrs['AssessorName'] || !attrs['AssessmentTeam']) {
+                msg = 'Please fill all the required fields';
             }
 
             if (msg.length > 0) {
@@ -13678,6 +13977,10 @@ define('analysis/model',['require','helpers/backend','underscore','classes/EditS
             }
         },
 
+        /**
+         * covert view-model to data transfer object in order to save
+         * @return {object}
+         */
         toServerObject: function() {
             var obj = {},
                 d;
@@ -13697,6 +14000,10 @@ define('analysis/model',['require','helpers/backend','underscore','classes/EditS
 
     });
 
+    /**
+     * view-model to DTO attributes mapping
+     * @type {Object}
+     */
     exports._modelObjectMap = {
         'RecordID': 'RecordID',
         'TypeID': 'AnalysisTypeID',
@@ -13710,6 +14017,11 @@ define('analysis/model',['require','helpers/backend','underscore','classes/EditS
         'TotalCost': 'AssessCost'
     };
 
+    /**
+     * convert DTO to view-model
+     * @param  {object} servObj - DTO retrieved from Service API
+     * @return {[type]}
+     */
     exports.fromServerObject = function(servObj) {
         var model = {};
 
@@ -13761,39 +14073,27 @@ define('note/model',['require','classes/EditStatus','helpers/backend','classes/S
     var exports = require('classes/SuperModel').extend({
         defaults: {
             'RecordID': 0,
-            'NoteTypeID': 0,
+            'NoteTypeID': '0',
             'NoteTypeDesc': '',
-            'NoteStatusID': 0,
+            'NoteStatusID': '0',
             'NoteStatusDesc': '',
-            'RaisedBy': null,
+            'RaisedBy': '',
             'DateRaised': new Date(),
             'Comment': '',
             'EditStatus': EditStatus.None
         },
         validate: function(attrs, options) {
-            var errors = [];
+            var error = '';
 
-            if (attrs.NoteTypeID === '0') {
-                errors.push('You must select \"Note Type\"');
+            if (attrs.NoteTypeID === '0' ||
+                attrs.NoteStatusID === '0' ||
+                attrs.RaisedBy.trim() === '' ||
+                !attrs.DateRaised ||
+                attrs.Comment.length === 0) {
+                error = 'Please fill the required fields';
             }
 
-            if (attrs.NoteStatusID === '0') {
-                errors.push('You must select \"Status\"');
-            }
-
-            if (attrs.RaisedBy === '') {
-                errors.push('You must enter \"Raised By\"');
-            }
-
-            if (!attrs.DateRaised) {
-                errors.push('You must select \"Date Raised\"');
-            }
-
-            if (attrs.Comment.length === 0) {
-                errors.push('You must enter \"Comment\"');
-            }
-
-            return errors.length > 0 ? errors : null;
+            return error || null;
         }
 
     });
@@ -13845,17 +14145,13 @@ define('treatment/model',['require','helpers/backend','classes/EditStatus','clas
         },
 
         validate: function(attrs, options) {
-            var msg = [];
+            var msg = '';
 
-            if (attrs.TreatmentStrategyID === '0') {
-                msg.push('You must select \"Treatment Strategy\"');
+            if (attrs.TreatmentStrategyID === '0' || attrs.TreatmentTypeID === '0') {
+                msg = 'Please select required fields';
             }
 
-            if (attrs.TreatmentTypeID === '0') {
-                msg.push('You must select \"Treatment\"');
-            }
-
-            return msg.length > 0 ? msg : false;
+            return msg || false;
         },
         _collectionPropertyChanged: function(event) {
 
@@ -13909,8 +14205,8 @@ define('factor/model',['require','classes/EditStatus','helpers/backend','classes
 
         defaults: {
             'RecordID': null,
-            'AssetCategoryID': null,
-            'AssetSubCategoryID': null,
+            'AssetCategoryID': '0',
+            'AssetSubCategoryID': '0',
             'RiskFactorDesc': null,
             'Assessment': null,
             'Treatments': null,
@@ -14040,7 +14336,7 @@ define('risk/model',['require','underscore','helpers/backend','classes/SuperMode
                 case 'update':
 
                     if (this.isDirty()) {
-                        backend.saveRisk(model).done(function(props) {
+                        return backend.saveRisk(model).done(function(props) {
                             model.set(props).setDirty(false);
                         });
                     }
@@ -14049,7 +14345,7 @@ define('risk/model',['require','underscore','helpers/backend','classes/SuperMode
 
                 case 'read':
 
-                    backend.getRiskById(model.get('id')).done(function(props) {
+                    return backend.getRiskById(model.get('id')).done(function(props) {
                         model.set(props).setDirty(false);
                     });
 
@@ -14063,13 +14359,14 @@ define('risk/model',['require','underscore','helpers/backend','classes/SuperMode
 });
 
 
-define('text!analysis/template.html',[],function () { return '<div class="compAnalysis">\r\n    <fieldset>\r\n        <legend>Analysis Used to Assess the Risk:</legend>\r\n        <div class="row">\r\n            <div class="col col-3">\r\n                <label>\r\n                    Analysis Type:\r\n                </label>\r\n            </div>\r\n            <div class="col col-4 wrap-mandatory">\r\n                <select name="TypeID" class="full-width">\r\n                    <option value="0">--</option>\r\n                    <% if(this.refData && this.refData.AnalysisTypes) { _.each(this.refData.AnalysisTypes, function(type){ %>\r\n                        <option value="<%-type.id%>">\r\n                            <%-type.desc%>\r\n                        </option>\r\n                        <% });} %>\r\n                </select>\r\n            </div>\r\n        </div>\r\n        <div class="row">\r\n            <div class="col col-3">\r\n                <label>\r\n                    Date of Risk Assessment:\r\n                </label>\r\n            </div>\r\n            <div class="col col-4 wrap-mandatory wrap-date">\r\n                <input type="text" name="DateAssessed" class="full-width date-field" readonly>\r\n            </div>\r\n        </div>\r\n        <div class="row">\r\n            <div class="col col-3">\r\n                <label>\r\n                    Risk Assessor:\r\n                </label>\r\n            </div>\r\n            <div class="col col-9 wrap-mandatory wrap-find">\r\n                <input type="text" name="AssessorName" data-keyup class="full-width">\r\n            </div>\r\n        </div>\r\n        <div class="row">\r\n            <div class="col col-3">\r\n                <label>\r\n                    Assessment Team:\r\n                </label>\r\n            </div>\r\n            <div class="col col-9 wrap-mandatory wrap-find bottom wrap-assessment-team">\r\n                <textarea name="AssessmentTeam" class="full-width" data-keyup rows="6"></textarea>\r\n            </div>\r\n        </div>\r\n        <div class="row">\r\n            <div class="col col-3">\r\n                <label>\r\n                    Effort Hours:\r\n                </label>\r\n                <input type="text" name="EffortHours" class="full-width" data-keyup>\r\n            </div>\r\n\r\n            <div class="col col-3 col-offset-1">\r\n                <label>\r\n                    Hourly Rate:\r\n                </label>\r\n                <input type="text" name="HourlyRate" class="full-width" data-keyup>\r\n            </div>\r\n            <div class="col col-3 col-offset-1">\r\n                <label>\r\n                    Total Cost:\r\n                </label>\r\n                <input type="text" name="TotalCost" class="full-width" data-keyup>\r\n            </div>\r\n        </div>\r\n    </fieldset>\r\n    <div class="row">\r\n        <div class="col text-right">\r\n            <button data-click="save">OK</button>\r\n            <button data-click="close" class="secondary">Cancel</button>\r\n        </div>\r\n    </div>\r\n</div>\r\n';});
+define('text!analysis/template.html',[],function () { return '<div class="compAnalysis">\r\n    <fieldset>\r\n        <legend>Analysis Used to Assess the Risk:</legend>\r\n        <div class="row">\r\n            <div class="col col-3">\r\n                <label>\r\n                    Analysis Type:\r\n                </label>\r\n            </div>\r\n            <div class="col col-4 wrap-mandatory">\r\n                <select name="TypeID" class="full-width">\r\n                    <option value="0">--</option>\r\n                    <% if(this.refData && this.refData.AnalysisTypes) { _.each(this.refData.AnalysisTypes, function(type){ %>\r\n                        <option value="<%-type.id%>">\r\n                            <%-type.desc%>\r\n                        </option>\r\n                        <% });} %>\r\n                </select>\r\n            </div>\r\n            <div class="col col-1">\r\n                <i class="fa fa-asterisk required"></i>\r\n            </div>\r\n        </div>\r\n        <div class="row">\r\n            <div class="col col-3">\r\n                <label>\r\n                    Date of Risk Assessment:\r\n                </label>\r\n            </div>\r\n            <div class="col col-4 wrap-mandatory wrap-date">\r\n                <input type="text" name="DateAssessed" class="full-width date-field" readonly>\r\n            </div>\r\n            <div class="col col-1">\r\n                <i class="fa fa-asterisk required"></i>\r\n            </div>\r\n        </div>\r\n        <div class="row">\r\n            <div class="col col-3">\r\n                <label>\r\n                    Risk Assessor:\r\n                </label>\r\n            </div>\r\n            <div class="col col-8 wrap-mandatory wrap-find">\r\n                <input type="text" name="AssessorName" data-keyup class="full-width">\r\n            </div>\r\n            <div class="col col-1">\r\n                <i class="fa fa-asterisk required"></i>\r\n            </div>\r\n        </div>\r\n        <div class="row">\r\n            <div class="col col-3">\r\n                <label>\r\n                    Assessment Team:\r\n                </label>\r\n            </div>\r\n            <div class="col col-8 wrap-mandatory wrap-find bottom wrap-assessment-team">\r\n                <textarea name="AssessmentTeam" class="full-width" data-keyup rows="6"></textarea>\r\n            </div>\r\n            <div class="col col-1">\r\n                <i class="fa fa-asterisk required"></i>\r\n            </div>\r\n        </div>\r\n        <div class="row">\r\n            <div class="col col-3">\r\n                <label>\r\n                    Effort Hours:\r\n                </label>\r\n                <input type="text" name="EffortHours" class="full-width" data-keyup>\r\n            </div>\r\n\r\n            <div class="col col-3 col-offset-1">\r\n                <label>\r\n                    Hourly Rate:\r\n                </label>\r\n                <input type="text" name="HourlyRate" class="full-width" data-keyup>\r\n            </div>\r\n            <div class="col col-3 col-offset-1">\r\n                <label>\r\n                    Total Cost:\r\n                </label>\r\n                <input type="text" name="TotalCost" class="full-width" data-keyup>\r\n            </div>\r\n        </div>\r\n    </fieldset>\r\n    <div class="row">\r\n        <div class="col text-right">\r\n            <button data-click="save">OK</button>\r\n            <button data-click="close" class="secondary">Cancel</button>\r\n        </div>\r\n    </div>\r\n</div>\r\n';});
 
-define('analysis/view',['require','backbone','underscore','jquery','./model','text!./template.html'],function(require) {
+define('analysis/view',['require','backbone','underscore','jquery','./model','alert','text!./template.html'],function(require) {
     var Backbone = require('backbone'),
         _ = require('underscore'),
         $ = require('jquery'),
-        Model = require('./model');
+        Model = require('./model'),
+        alert = require('alert');
 
     var exports = Backbone.View.extend({
         template: _.template(require('text!./template.html')),
@@ -14135,14 +14432,23 @@ define('analysis/view',['require','backbone','underscore','jquery','./model','te
 
         remove: function() {
 
-            if (this.model.isDirty() && !confirm('You may lose unsaved changes.\r\nDo you want to continue?')) {
-                return;
-            }
+            $.Deferred(_.bind(function(deferred) {
 
-            $(window).off('beforeunload', this._windowUnload);
-            this._get('.date-field').datepicker('destroy');
-            Backbone.View.prototype.remove.apply(this);
-            this.trigger('removed', this);
+                if (!this.model.isDirty()) {
+                    deferred.resolve();
+                } else {
+                    alert('You may lose unsaved changes.\r\nDo you want to continue?', 'warning', function() {
+                        deferred.resolve();
+                    }, function() {});
+                }
+            }, this)).done(_.bind(function() {
+
+                $(window).off('beforeunload', this._windowUnload);
+                this._get('.date-field').datepicker('destroy');
+                Backbone.View.prototype.remove.apply(this);
+                this.trigger('removed', this);
+
+            }, this));
         },
 
         _domEvents: function(e) {
@@ -14241,7 +14547,7 @@ define('analysis/view',['require','backbone','underscore','jquery','./model','te
                 options = arguments[3];
 
             if (eventName === 'invalid') {
-                console.warn(this.model.validationError);
+                alert(this.model.validationError);
             } else if (eventName === 'change') {
 
                 defaults = this.model.defaults();
@@ -14278,7 +14584,7 @@ define('analysis/view',['require','backbone','underscore','jquery','./model','te
 
         _windowUnload: function() {
             if (this.model.isDirty()) {
-                return 'You may lose unsaved changes.\r\nDo you want to continue?';
+                return 'You may lose unsaved changes.';
             }
         },
 
@@ -14308,162 +14614,6 @@ define('analysis/view',['require','backbone','underscore','jquery','./model','te
 
     return exports;
 });
-
-
-define('text!modal/template.htm',[],function () { return '<div class="compModal">\r\n    <a title="Close" class="compModalCloseButton" href="javascript:void(0);" data-click="close"><i title="Close">&#x2716;</i>Close</a>\r\n</div>\r\n';});
-
-define('modal/view',['require','backbone','underscore','jquery','text!./template.htm'],function(require) {
-    var Backbone = require('backbone'),
-        _ = require('underscore'),
-        $ = require('jquery');
-
-    var exports = Backbone.View.extend({
-
-        template: _.template(require('text!./template.htm')),
-
-        attributes: {
-            'class': 'compModalWrap'
-        },
-
-        events: {
-            'click [data-click]': '_domEvents'
-        },
-
-        initialize: function() {
-            this._content = null;
-            this._contentAppended = false;
-        },
-
-        render: function(content, className) {
-            var $modal;
-
-            this._content = content;
-            this.$el.html(this.template());
-
-            window.setTimeout(_.bind(function() {
-                $modal = this.$el.find('.compModal').addClass(className + ' compModalActive');
-            }, this), 60);
-
-            this.listenTo(content, {
-                'removed': function() {
-                    this.remove();
-                },
-                'rendered': function() {
-                    this._content.$el.addClass('compModalContent');
-
-                    window.requestAnimationFrame(_.bind(function() {
-                        this._content.$el.addClass('compModalContentActive');
-                    }, this));
-
-                }
-            });
-
-            this.$el.on('transitionend webkitTransitionEnd oTransitionEnd MSTransitionEnd', _.bind(function() {
-                if (!this._contentAppended) {
-                    $modal.append(this._content.render().$el);
-                    this._contentAppended = true;
-                }
-            }, this));
-
-            return this;
-        },
-
-        _domEvents: function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            if (e.type === 'click' && $(e.currentTarget).data('click') === 'close') {
-                this._content.remove();
-            }
-        },
-
-        remove: function() {
-            Backbone.View.prototype.remove.apply(this);
-            this.trigger('removed', this);
-        },
-
-        close: function() {
-            this._content.remove();
-        }
-
-    });
-
-    return exports;
-});
-
-define('modal/main',['require','backbone','underscore','jquery','./view'],function(require) {
-    var Backbone = require('backbone'),
-        _ = require('underscore'),
-        $ = require('jquery'),
-        _views = [],
-        _container = null;
-
-
-    var exports = _.extend({
-
-            show: function(content, className) {
-                var view = new(require('./view')),
-                    container;
-
-                if (!_views.length) {
-
-                    _container = $('<div class="compModalContainer"><div class="compModalOverlay"></div></div>')
-                        .appendTo(document.body)
-                        .on('click', this.close);
-
-                    $(document).on('keydown', this.close);
-
-                    //prevent double scrollbars when modal shows
-                    $(document.body).css('overflow', 'hidden');
-                } else {
-                    _views[0].$el.hide();
-                }
-
-                view.render(content, className).$el.appendTo(_container);
-
-                _views.unshift(view);
-
-                this.listenTo(view, 'removed', function() {
-                    _views.shift();
-
-                    if (!_views.length) {
-                        _container.off('click');
-                        _container.remove();
-                        _container = null;
-                        $(document).off('keydown', this.close);
-                        $(document.body).css('overflow', '');
-                    } else {
-
-                        _views[0].$el.show();
-                    }
-
-                });
-            },
-
-            close: function() {
-                var args = [].slice.apply(arguments);
-
-                if (args[0] && args[0].type === 'keydown') {
-
-                    if (args[0].keyCode === 27) {
-                        _views[0].close();
-                    }
-                } else if (args[0] && args[0].type === 'click') {
-                    if (~args[0].target.className.indexOf('compModalOverlay')) {
-                        _views[0].close();
-                    }
-                } else {
-                    _views[0].close();
-
-                }
-            }
-        },
-        Backbone.Events);
-
-    return exports;
-});
-
-define('modal', ['modal/main'], function (main) { return main; });
 
 
 define('text!analysis/tmplList.html',[],function () { return '<div class="compAnalysisList">\r\n    <div class="row">\r\n        <div class="col">\r\n            <table class="compAnalysisListTable full-width">\r\n                <colgroup>\r\n                    <col/>\r\n                    <col/>\r\n                    <col/>\r\n                    <col/>\r\n                    <col/>\r\n                </colgroup>\r\n                <thead>\r\n                    <tr>\r\n                        <th>\r\n                            Type of Analysis\r\n                        </th>\r\n                        <th>\r\n                            Date\r\n                        </th>\r\n                        <th>\r\n                            Assessor\r\n                        </th>\r\n                        <th>\r\n                            Cost\r\n                        </th>\r\n                        <th>\r\n                        </th>\r\n                    </tr>\r\n                </thead>\r\n                <tbody>\r\n                    <% _.each(analyses, function(analysis, i){ %>\r\n                        <tr>\r\n                            <td>\r\n                                <%- analysis.TypeDesc %>\r\n                            </td>\r\n                            <td>\r\n                                <%- analysis.DateAssessed ? analysis.DateAssessed.formatDate() : \'\' %>\r\n                            </td>\r\n                            <td>\r\n                                <%- analysis.AssessorName || \'\' %>\r\n                            </td>\r\n                            <td>\r\n                                <%- _.isNull(analysis.TotalCost)? \'\': ( \'$\' + analysis.TotalCost.formatCurrency(2,3))%>\r\n                            </td>\r\n                            <td>\r\n                                <i class="fa fa-pencil" data-click="edit"></i>\r\n                                <i class="fa fa-trash" data-click="del"></i>\r\n                            </td>\r\n                        </tr>\r\n                        <%}); %>\r\n                </tbody>\r\n            </table>\r\n        </div>\r\n    </div>\r\n    <div class="row text-center">\r\n        <div class="col">\r\n            <button data-click="create">Add a new Analysis</button>\r\n        </div>\r\n    </div>\r\n</div>\r\n';});
@@ -14539,9 +14689,9 @@ define('analysis/listView',['require','backbone','underscore','jquery','./collec
 
                     case 'del':
 
-                        if (confirm('You are going to delete this analysis.\r\nDo you want to continue?')) {
+                        alert('You are going to delete this analysis.\r\nDo you want to continue?', 'warning', function() {
                             this.collection.remove($el.parents('tr:eq(0)').data('analysis'));
-                        }
+                        }, function() {}, this);
 
                         break;
                 }
@@ -14591,13 +14741,13 @@ define('analysis/listView',['require','backbone','underscore','jquery','./collec
 define('text!factor/tmplList.html',[],function () { return '<table class="compFactor full-width">\r\n    <thead>\r\n        <tr>\r\n            <th>Risk Description</th>\r\n            <th>Treatments</th>\r\n            <th>Rating</th>\r\n        </tr>\r\n    </thead>\r\n    <tbody>\r\n    </tbody>\r\n</table>';});
 
 
-define('text!factor/tmplListItem.html',[],function () { return '<tr class="compFactorListItem" data-factor>\r\n    <td>\r\n        <div class="row">\r\n            <div class="col">\r\n                <select name="AssetCategoryID" class="full-width">\r\n                    <option value="0">---</option>\r\n                    <% if(assetCategories && assetCategories.length>0){ _.each(assetCategories , function (item){ %>\r\n                        <option value="<%= item.id %>">\r\n                            <%- item.desc %>\r\n                        </option>\r\n                        <%}); } %>\r\n                </select>\r\n            </div>\r\n        </div>\r\n        <div class="row">\r\n            <div class="col">\r\n                <select name="AssetSubCategoryID" class="full-width">\r\n                    <option value="0">---</option>\r\n                </select>\r\n            </div>\r\n        </div>\r\n        <div class="row">\r\n            <div class="col">\r\n                <textarea name="RiskFactorDesc" class="compFactorListItemDesc full-width"></textarea>\r\n            </div>\r\n        </div>\r\n        <div class="row wrap-btns">\r\n            <div class="col">\r\n                <i class="fa fa-plus" title="add" data-click="add"></i>\r\n                <i class="fa fa-arrow-up" title="move up" data-click="up"></i>\r\n                <i class="fa fa-arrow-down" title="move down" data-click="down"></i>\r\n                <i class="fa fa-trash" title="delete" data-click="del"></i>\r\n            </div>\r\n        </div>\r\n    </td>\r\n    <td data-contentid="treatmentListView">\r\n    </td>\r\n    <td class="text-center compFactorListItemRatingCol">\r\n        <button class="btn" data-click="rate">\r\n            Rate</button>\r\n    </td>\r\n</tr>\r\n';});
+define('text!factor/tmplListItem.html',[],function () { return '<tr class="compFactorListItem" data-factor>\r\n    <td>\r\n        <div class="row">\r\n            <div class="col">\r\n                <select name="AssetCategoryID" class="full-width">\r\n                    <option value="0">-- Asset Category --</option>\r\n                    <% if(assetCategories && assetCategories.length>0){ _.each(assetCategories , function (item){ %>\r\n                        <option value="<%= item.id %>">\r\n                            <%- item.desc %>\r\n                        </option>\r\n                        <%}); } %>\r\n                </select>\r\n            </div>\r\n        </div>\r\n        <div class="row">\r\n            <div class="col">\r\n                <select name="AssetSubCategoryID" class="full-width">\r\n                    <option value="0">-- Asset Sub Category --</option>\r\n                </select>\r\n            </div>\r\n        </div>\r\n        <div class="row">\r\n            <div class="col">\r\n                <textarea name="RiskFactorDesc" class="compFactorListItemDesc full-width"></textarea>\r\n            </div>\r\n        </div>\r\n        <div class="row wrap-btns">\r\n            <div class="col">\r\n                <i class="fa fa-plus" title="add" data-click="add"></i>\r\n                <i class="fa fa-arrow-up" title="move up" data-click="up"></i>\r\n                <i class="fa fa-arrow-down" title="move down" data-click="down"></i>\r\n                <i class="fa fa-trash" title="delete" data-click="del"></i>\r\n            </div>\r\n        </div>\r\n    </td>\r\n    <td data-contentid="treatmentListView">\r\n    </td>\r\n    <td class="text-center compFactorListItemRatingCol">\r\n        <button class="btn" data-click="rate">\r\n            Rate</button>\r\n    </td>\r\n</tr>\r\n';});
 
 
 define('text!treatment/tmplListItem.htm',[],function () { return '<div class="compTreatmentListItem" data-treatment>\r\n    <div class="row">\r\n        <div class="col col-3">\r\n            <label>\r\n                Strategy:\r\n            </label>\r\n        </div>\r\n        <div class="col col-9">\r\n            <input type="text" name="TreatmentStrategyDesc" readonly onfocus="this.blur()" class="full-width" />\r\n        </div>\r\n    </div>\r\n    <div class="row">\r\n        <div class="col col-3">\r\n            <label>\r\n                Treatment:\r\n            </label>\r\n        </div>\r\n        <div class="col col-9">\r\n            <input type="text" name="TreatmentTypeDesc" readonly onfocus="this.blur()" class="full-width" />\r\n        </div>\r\n    </div>\r\n    <div class="row treatment-input-wrap">\r\n        <div class="col">\r\n            <i class="fa fa-plus" title="add" data-click="add"></i>\r\n            <i class="fa fa-arrow-up" title="move up" data-click="up"></i>\r\n            <i class="fa fa-arrow-down" title="move down" data-click="down"></i>\r\n            <i class="fa fa-trash" title="delete" data-click="del"></i>\r\n            <i class="fa fa-bookmark" title="note" data-click="note"></i>\r\n            <i class="fa fa-pencil right" title="edit" data-click="edit"></i>\r\n        </div>\r\n    </div>\r\n</div>\r\n';});
 
 
-define('text!treatment/template.html',[],function () { return '<div class="compTreatment">\r\n    <fieldset>\r\n        <legend>Treatment Details</legend>\r\n        <div class="row">\r\n            <div class="col col-3 col-offset-1">\r\n                <label>\r\n                    Treatment Strategy:</label>\r\n            </div>\r\n            <div class="col col-6 wrap-mandatory">\r\n                <select name="TreatmentStrategyID" class="full-width">\r\n                    <option value="0">--</option>\r\n                    <% if(this.refData && _.isArray(this.refData.TreatmentStrategis)){ _.each(this.refData.TreatmentStrategis, function(strategy){ %>\r\n                        <option value="<%-strategy.id%>">\r\n                            <%-strategy.desc%>\r\n                        </option>\r\n                        <%}); }%>\r\n                </select>\r\n            </div>\r\n        </div>\r\n        <div class="row">\r\n            <div class="col col-3 col-offset-1">\r\n                <label>\r\n                    Treatment:</label>\r\n            </div>\r\n            <div class="col col-6 wrap-mandatory">\r\n                <select name="TreatmentTypeID" class="full-width">\r\n                    <option value="0">--</option>\r\n                </select>\r\n            </div>\r\n        </div>\r\n        <div class="row">\r\n            <div class="col col-3 col-offset-1">\r\n                <label>\r\n                    Treatment Objective:</label>\r\n            </div>\r\n            <div class="col col-6 wrap-mandatory">\r\n                <textarea cols="10" rows="5" name="TreatmentObjective" class="full-width"></textarea>\r\n            </div>\r\n        </div>\r\n        <div class="row">\r\n            <div class="col col-3 col-offset-1">\r\n                <label>\r\n                    Treatment Manager:</label>\r\n            </div>\r\n            <div class="col col-6 wrap-mandatory">\r\n                <select name="TreatmentManagerID" class="full-width">\r\n                    <option value="0">--</option>\r\n                    <% if(this.refData && _.isArray(this.refData.TreatmentManagers)){ \r\n                        _.each(this.refData.TreatmentManagers, function(manager){ %>\r\n                        <option value="<%-manager.id%>">\r\n                            <%-manager.desc%>\r\n                        </option>\r\n                        <%}); }%>\r\n                </select>\r\n            </div>\r\n        </div>\r\n        <div class="row">\r\n            <div class="col col-3 col-offset-1">\r\n                <label>\r\n                    Bushfire Management Zone:</label>\r\n            </div>\r\n            <div class="col col-6 wrap-mandatory">\r\n                <select name="BushfireManagementZoneID" class="full-width">\r\n                    <option value="0">--</option>\r\n                    <% if(this.refData && _.isArray(this.refData.BushfireManagementZones)){\r\n                     _.each(this.refData.BushfireManagementZones, function(zone){ %>\r\n                        <option value="<%-zone.id%>">\r\n                            <%-zone.desc%>\r\n                        </option>\r\n                        <%}); }%>\r\n                </select>\r\n            </div>\r\n        </div>\r\n        <div class="row">\r\n            <div class="col col-6 col-offset-1">\r\n                <label>\r\n                    Is this treatment part of a Fire Management Plan?</label>\r\n            </div>\r\n            <div class="col col-3 radio-group">\r\n                <label>\r\n                    <input type="radio" name="IsPartOfPlan" value="false" />No</label>\r\n                <label>\r\n                    <input type="radio" name="IsPartOfPlan" value="true" />Yes</label>\r\n            </div>\r\n        </div>\r\n        <div data-domid="fireManagementPlanWrap" class="row" disabled>\r\n            <div class="col col-3 text-right col-offset-1">\r\n                <label disabled>\r\n                    Fire Management Plan:&nbsp;</label>\r\n            </div>\r\n            <div class="col col-6 wrap-mandatory">\r\n                <input type="text" name="FireManagementPlan" disabled class="full-width" />\r\n            </div>\r\n        </div>\r\n        <div class="row">\r\n            <div class="col col-3 col-offset-1">\r\n                <label>\r\n                    Responsible Person:</label>\r\n            </div>\r\n            <div class="col col-6 wrap-mandatory wrap-find wrap-undo">\r\n                <input type="text" name="ResponsiblePersonName" class="full-width" />\r\n            </div>\r\n        </div>\r\n        <div class="row">\r\n            <div class="col col-3 col-offset-1">\r\n                <label>\r\n                    Party Performing Treatment:</label>\r\n            </div>\r\n            <div class="col col-6 wrap-mandatory wrap-find wrap-undo no-arrow">\r\n                <input type="text" name="ContractorDesc" class="full-width" />\r\n            </div>\r\n        </div>\r\n        <div class="row">\r\n            <div class="col col-3 col-offset-1">\r\n                <label>\r\n                    Scheduled Date:</label>\r\n            </div>\r\n            <div class="col col-3">\r\n                <input type="text" name="ScheduledDate" readonly class="full-width date-field" />\r\n            </div>\r\n        </div>\r\n    </fieldset>\r\n    <div class="row">\r\n        <div class="col text-right">\r\n            <button data-click="save">OK</button>\r\n            <button data-click="close" class="secondary">Cancel</button>\r\n        </div>\r\n    </div>\r\n</div>\r\n\r\n<script data-template="tmplSelectOptions" type="text/template">\r\n    <% print( \'<option value="0">--</option>\') %>\r\n        <% print( \'\\<%_.each(options, function(o){ %\\>\') %>\r\n            <% print( \'<option value="\\<%-o.id%\\>">\\<%-o.desc%\\></option>\') %>\r\n                <% print( \'\\<%});%\\>\') %>\r\n</script>\r\n';});
+define('text!treatment/template.html',[],function () { return '<div class="compTreatment">\r\n    <fieldset>\r\n        <legend>Treatment Details</legend>\r\n        <div class="row">\r\n            <div class="col col-3 col-offset-1">\r\n                <label>\r\n                    Treatment Strategy:</label>\r\n            </div>\r\n            <div class="col col-6 wrap-mandatory">\r\n                <select name="TreatmentStrategyID" class="full-width">\r\n                    <option value="0">--</option>\r\n                    <% if(this.refData && _.isArray(this.refData.TreatmentStrategis)){ _.each(this.refData.TreatmentStrategis, function(strategy){ %>\r\n                        <option value="<%-strategy.id%>">\r\n                            <%-strategy.desc%>\r\n                        </option>\r\n                        <%}); }%>\r\n                </select>\r\n            </div>\r\n            <div class="col col-1">\r\n                <i class="fa fa-asterisk required"></i>\r\n            </div>\r\n        </div>\r\n        <div class="row">\r\n            <div class="col col-3 col-offset-1">\r\n                <label>\r\n                    Treatment:</label>\r\n            </div>\r\n            <div class="col col-6 wrap-mandatory">\r\n                <select name="TreatmentTypeID" class="full-width">\r\n                    <option value="0">--</option>\r\n                </select>\r\n            </div>\r\n            <div class="col col-1">\r\n                <i class="fa fa-asterisk required"></i>\r\n            </div>\r\n        </div>\r\n        <div class="row">\r\n            <div class="col col-3 col-offset-1">\r\n                <label>\r\n                    Treatment Objective:</label>\r\n            </div>\r\n            <div class="col col-6 wrap-mandatory">\r\n                <textarea cols="10" rows="5" name="TreatmentObjective" class="full-width"></textarea>\r\n            </div>\r\n        </div>\r\n        <div class="row">\r\n            <div class="col col-3 col-offset-1">\r\n                <label>\r\n                    Treatment Manager:</label>\r\n            </div>\r\n            <div class="col col-6 wrap-mandatory">\r\n                <select name="TreatmentManagerID" class="full-width">\r\n                    <option value="0">--</option>\r\n                    <% if(this.refData && _.isArray(this.refData.TreatmentManagers)){ _.each(this.refData.TreatmentManagers, function(manager){ %>\r\n                        <option value="<%-manager.id%>">\r\n                            <%-manager.desc%>\r\n                        </option>\r\n                        <%}); }%>\r\n                </select>\r\n            </div>\r\n        </div>\r\n        <div class="row">\r\n            <div class="col col-3 col-offset-1">\r\n                <label>\r\n                    Bushfire Management Zone:</label>\r\n            </div>\r\n            <div class="col col-6 wrap-mandatory">\r\n                <select name="BushfireManagementZoneID" class="full-width">\r\n                    <option value="0">--</option>\r\n                    <% if(this.refData && _.isArray(this.refData.BushfireManagementZones)){ _.each(this.refData.BushfireManagementZones, function(zone){ %>\r\n                        <option value="<%-zone.id%>">\r\n                            <%-zone.desc%>\r\n                        </option>\r\n                        <%}); }%>\r\n                </select>\r\n            </div>\r\n        </div>\r\n        <div class="row">\r\n            <div class="col col-6 col-offset-1">\r\n                <label>\r\n                    Is this treatment part of a Fire Management Plan?</label>\r\n            </div>\r\n            <div class="col col-3 radio-group">\r\n                <label>\r\n                    <input type="radio" name="IsPartOfPlan" value="false" />No</label>\r\n                <label>\r\n                    <input type="radio" name="IsPartOfPlan" value="true" />Yes</label>\r\n            </div>\r\n        </div>\r\n        <div data-domid="fireManagementPlanWrap" class="row" disabled>\r\n            <div class="col col-3 text-right col-offset-1">\r\n                <label disabled>\r\n                    Fire Management Plan:&nbsp;</label>\r\n            </div>\r\n            <div class="col col-6 wrap-mandatory">\r\n                <input type="text" name="FireManagementPlan" disabled class="full-width" />\r\n            </div>\r\n        </div>\r\n        <div class="row">\r\n            <div class="col col-3 col-offset-1">\r\n                <label>\r\n                    Responsible Person:</label>\r\n            </div>\r\n            <div class="col col-6 wrap-mandatory wrap-find wrap-undo">\r\n                <input type="text" name="ResponsiblePersonName" class="full-width" />\r\n            </div>\r\n        </div>\r\n        <div class="row">\r\n            <div class="col col-3 col-offset-1">\r\n                <label>\r\n                    Party Performing Treatment:</label>\r\n            </div>\r\n            <div class="col col-6 wrap-mandatory wrap-find wrap-undo no-arrow">\r\n                <input type="text" name="ContractorDesc" class="full-width" />\r\n            </div>\r\n        </div>\r\n        <div class="row">\r\n            <div class="col col-3 col-offset-1">\r\n                <label>\r\n                    Scheduled Date:</label>\r\n            </div>\r\n            <div class="col col-3">\r\n                <input type="text" name="ScheduledDate" readonly class="full-width date-field" />\r\n            </div>\r\n        </div>\r\n    </fieldset>\r\n    <div class="row">\r\n        <div class="col text-right">\r\n            <button data-click="save">OK</button>\r\n            <button data-click="close" class="secondary">Cancel</button>\r\n        </div>\r\n    </div>\r\n</div>\r\n\r\n<script data-template="tmplSelectOptions" type="text/template">\r\n    <% print( \'<option value="0">--</option>\') %>\r\n        <% print( \'\\<%_.each(options, function(o){ %\\>\') %>\r\n            <% print( \'<option value="\\<%-o.id%\\>">\\<%-o.desc%\\></option>\') %>\r\n                <% print( \'\\<%});%\\>\') %>\r\n</script>\r\n';});
 
 define('treatment/view',['require','underscore','jquery','./model','classes/EditStatus','backbone','text!./template.html','backbone'],function(require) {
     var _ = require('underscore'),
@@ -14683,14 +14833,21 @@ define('treatment/view',['require','underscore','jquery','./model','classes/Edit
 
         remove: function() {
 
-            if (this.model.isDirty() && !confirm('You may lose any unsaved changes.\r\nDo you want to continue?')) {
-                return;
-            }
+            $.Deferred(_.bind(function(deferred) {
+                if (!this.model.isDirty()) {
+                    deferred.resolve();
+                } else {
+                    alert('You may lose any unsaved changes.\r\nDo you want to continue?', 'warning', function() {
+                        deferred.resolve();
+                    }, function() {});
+                }
+            }, this)).done(_.bind(function() {
+                $(window).off('beforeunload', this._beforeunload);
+                this.$el.find('.date-field').datepicker('destroy');
+                require('backbone').View.prototype.remove.apply(this);
+                this.trigger('removed', this);
+            }, this));
 
-            $(window).off('beforeunload', this._beforeunload);
-            this.$el.find('.date-field').datepicker('destroy');
-            require('backbone').View.prototype.remove.apply(this);
-            this.trigger('removed', this);
         },
 
         _modelChanged: function(event) {
@@ -14702,7 +14859,7 @@ define('treatment/view',['require','underscore','jquery','./model','classes/Edit
                 isPartOfPlan;
 
             if (event === 'invalid') {
-                console.warn(this.model.validationError);
+                alert(this.model.validationError);
                 return;
             }
 
@@ -14911,7 +15068,7 @@ define('treatment/view',['require','underscore','jquery','./model','classes/Edit
         _beforeunload: function(e) {
 
             if (this.model.isDirty()) {
-                return 'You may lose any unsaved changes.\r\nDo you want to continue?';
+                return 'You may lose any unsaved changes.';
             }
         },
 
@@ -14955,11 +15112,12 @@ define('text!note/tmplList.html',[],function () { return '<div class="compNoteLi
 define('text!note/tmplListItem.html',[],function () { return '<tr>\r\n    <td>\r\n        <%=NoteTypeDesc || \'\' %>\r\n    </td>\r\n    <td>\r\n        <%=NoteStatusDesc || \'\' %>\r\n    </td>\r\n    <td>\r\n        <%=DateRaised ? DateRaised.formatDate() : \'\' %>\r\n    </td>\r\n    <td>\r\n        <%=RaisedBy || \'\' %>\r\n    </td>\r\n    <td>\r\n        <%=Comment || \'\' %>\r\n    </td>\r\n    <td>\r\n        <i class="fa fa-pencil" data-click="edit"></i>\r\n        <i class="fa fa-trash" data-click="del"></i>\r\n    </td>\r\n</tr>\r\n';});
 
 
-define('text!note/template.html',[],function () { return '<div class="compNote">\r\n    <fieldset>\r\n        <legend>Analysis Used to Assess the Risk:</legend>\r\n        <div class="row">\r\n            <div class="col col-2">\r\n                <label>\r\n                    Note Type:</label>\r\n            </div>\r\n            <div class="col col-4">\r\n                <select name="NoteTypeID" class="full-width">\r\n                    <option value="0">-- select a note type --</option>\r\n                    <% if(this.refData && this.refData.NoteTypes && this.refData.NoteTypes.length>0){_.each(this.refData.NoteTypes, function(item){ %>\r\n                        <option value="<%=item.id %>">\r\n                            <%=item.desc || \'\' %>\r\n                        </option>\r\n                        <%});} %>\r\n                </select>\r\n            </div>\r\n            <div class="col col-2">\r\n                <label>\r\n                    Status:</label>\r\n            </div>\r\n            <div class="col col-4">\r\n                <select name="NoteStatusID" class="full-width">\r\n                    <option value="0">-- select a note status --</option>\r\n                    <% if(this.refData && this.refData.NoteStatuses && this.refData.NoteStatuses.length>0){_.each(this.refData.NoteStatuses, function(item){ %>\r\n                        <option value="<%=item.id %>">\r\n                            <%=item.desc || \'\' %>\r\n                        </option>\r\n                        <%});} %>\r\n                </select>\r\n            </div>\r\n        </div>\r\n        <div class="row">\r\n            <div class="col col-2">\r\n                <label>\r\n                    Raised By:</label>\r\n            </div>\r\n            <div class="col col-4">\r\n                <input name="RaisedBy" type="text" class="full-width" />\r\n            </div>\r\n            <div class="col col-2">\r\n                <label>\r\n                    Date Raised:</label>\r\n            </div>\r\n            <div class="col col-4">\r\n                <input name="DateRaised" type="text" class="full-width date-field" readonly />\r\n            </div>\r\n        </div>\r\n        <div class="row">\r\n            <label class="col col-2">\r\n                Comment\r\n            </label>\r\n            <div class="col">\r\n                <textarea name="Comment" class="full-width" rows="5"></textarea>\r\n            </div>\r\n        </div>\r\n    </fieldset>\r\n    <div class="row">\r\n        <div class="col text-right">\r\n            <button data-click="save">Save</button>\r\n            <button data-click="close" class="secondary">Cancel</button>\r\n        </div>\r\n    </div>\r\n</div>\r\n';});
+define('text!note/template.html',[],function () { return '<div class="compNote">\r\n    <fieldset>\r\n        <legend>Analysis Used to Assess the Risk:</legend>\r\n        <div class="row">\r\n            <div class="col col-2">\r\n                <label>\r\n                    Note Type:</label>\r\n            </div>\r\n            <div class="col col-3">\r\n                <select name="NoteTypeID" class="full-width">\r\n                    <option value="0">--</option>\r\n                    <% if(this.refData && this.refData.NoteTypes && this.refData.NoteTypes.length>0){_.each(this.refData.NoteTypes, function(item){ %>\r\n                        <option value="<%=item.id %>">\r\n                            <%=item.desc || \'\' %>\r\n                        </option>\r\n                        <%});} %>\r\n                </select>\r\n            </div>\r\n            <div class="col col-1">\r\n                <i class="fa fa-asterisk required"></i>\r\n            </div>\r\n            <div class="col col-2">\r\n                <label>\r\n                    Status:</label>\r\n            </div>\r\n            <div class="col col-3">\r\n                <select name="NoteStatusID" class="full-width">\r\n                    <option value="0">--</option>\r\n                    <% if(this.refData && this.refData.NoteStatuses && this.refData.NoteStatuses.length>0){_.each(this.refData.NoteStatuses, function(item){ %>\r\n                        <option value="<%=item.id %>">\r\n                            <%=item.desc || \'\' %>\r\n                        </option>\r\n                        <%});} %>\r\n                </select>\r\n            </div>\r\n            <div class="col col-1">\r\n                <i class="fa fa-asterisk required"></i>\r\n            </div>\r\n        </div>\r\n        <div class="row">\r\n            <div class="col col-2">\r\n                <label>\r\n                    Raised By:</label>\r\n            </div>\r\n            <div class="col col-3">\r\n                <input name="RaisedBy" type="text" class="full-width" />\r\n            </div>\r\n            <div class="col col-1">\r\n                <i class="fa fa-asterisk required"></i>\r\n            </div>\r\n            <div class="col col-2">\r\n                <label>\r\n                    Date Raised:</label>\r\n            </div>\r\n            <div class="col col-3">\r\n                <input name="DateRaised" type="text" class="full-width date-field" readonly />\r\n            </div>\r\n            <div class="col col-1">\r\n                <i class="fa fa-asterisk required"></i>\r\n            </div>\r\n        </div>\r\n        <div class="row">\r\n            <label class="col col-2">\r\n                Comment\r\n            </label>\r\n            <div class="col col-9">\r\n                <textarea name="Comment" class="full-width" rows="5"></textarea>\r\n            </div>\r\n            <div class="col col-1">\r\n                <i class="fa fa-asterisk required"></i>\r\n            </div>\r\n        </div>\r\n    </fieldset>\r\n    <div class="row">\r\n        <div class="col text-right">\r\n            <button data-click="save">Save</button>\r\n            <button data-click="close" class="secondary">Cancel</button>\r\n        </div>\r\n    </div>\r\n</div>\r\n';});
 
-define('note/view',['require','underscore','jquery','backbone','text!./template.html','./model','./model','backbone'],function(require) {
+define('note/view',['require','underscore','jquery','alert','backbone','text!./template.html','./model','./model','backbone'],function(require) {
     var _ = require('underscore'),
-        $ = require('jquery');
+        $ = require('jquery'),
+        alert = require('alert');
 
     var exports = require('backbone').View.extend({
 
@@ -14972,6 +15130,7 @@ define('note/view',['require','underscore','jquery','backbone','text!./template.
             'change select': '_domEvents',
             'keyup :text, textarea': '_domEvents'
         },
+
         initialize: function(options) {
             _.bindAll(this, '_windowUnload');
 
@@ -15020,14 +15179,23 @@ define('note/view',['require','underscore','jquery','backbone','text!./template.
 
         remove: function() {
 
-            if (this.model.isDirty() && !confirm('You may lose unsaved changes.\r\nDo you want to continue?')) {
-                return;
-            }
+            $.Deferred(_.bind(function(deferred) {
 
-            this._$dateRaised.datepicker('destroy');
-            $(window).off('beforeunload', this._windowUnload);
-            require('backbone').View.prototype.remove.apply(this);
-            this.trigger('removed', this);
+                if (!this.model.isDirty()) {
+                    deferred.resolve();
+                } else {
+                    alert('You may lose unsaved changes.\r\nDo you want to continue?', 'warning', function() {
+                        deferred.resolve();
+                    }, function() {});
+                }
+            }, this)).done(_.bind(function() {
+
+                this._$dateRaised.datepicker('destroy');
+                $(window).off('beforeunload', this._windowUnload);
+                require('backbone').View.prototype.remove.apply(this);
+                this.trigger('removed', this);
+
+            }, this));
         },
 
         _modelChanged: function(event) {
@@ -15050,9 +15218,9 @@ define('note/view',['require','underscore','jquery','backbone','text!./template.
                     }
 
                 }, this);
-                
+
             } else if (event === 'invalid') {
-                console.warn(this.model.validationError);
+                alert(this.model.validationError);
             }
 
         },
@@ -15060,7 +15228,7 @@ define('note/view',['require','underscore','jquery','backbone','text!./template.
         _windowUnload: function() {
 
             if (this.model.isDirty()) {
-                return 'You may lose any unsaved changes.\r\nDo you want to continue?';
+                return 'You may lose any unsaved changes.';
             }
         },
 
@@ -15155,10 +15323,11 @@ define('note/view',['require','underscore','jquery','backbone','text!./template.
 
 });
 
-define('note/listView',['require','jquery','underscore','classes/EditStatus','backbone','text!./tmplList.html','text!./tmplListItem.html','backbone','./view','./model','modal'],function(require) {
+define('note/listView',['require','jquery','underscore','classes/EditStatus','alert','backbone','text!./tmplList.html','text!./tmplListItem.html','backbone','./view','./model','modal'],function(require) {
     var $ = require('jquery'),
         _ = require('underscore'),
-        EditStatus = require('classes/EditStatus');
+        EditStatus = require('classes/EditStatus'),
+        alert = require('alert');
 
     var exports = require('backbone').View.extend({
 
@@ -15234,7 +15403,7 @@ define('note/listView',['require','jquery','underscore','classes/EditStatus','ba
                         break;
 
                     case 'del':
-                        if (confirm('You are going to delete this note.\r\nDo you want to continue?')) {
+                        alert('You are going to delete this note.\r\nDo you want to continue?', 'warning', function() {
 
                             if (note.isNew()) {
                                 this.collection.remove(note);
@@ -15243,7 +15412,7 @@ define('note/listView',['require','jquery','underscore','classes/EditStatus','ba
                             }
 
                             this.trigger('deleted', note);
-                        }
+                        }, function() {}, this);
                         break;
                 }
             }
@@ -15267,19 +15436,16 @@ define('note/listView',['require','jquery','underscore','classes/EditStatus','ba
 
 });
 
-define('treatment/listView',['require','underscore','jquery','./model','./collection','classes/EditStatus','text!./tmplListItem.htm','modal','./view','backbone','modal','note/listView'],function(require) {
+define('treatment/listView',['require','underscore','jquery','./model','classes/EditStatus','alert','backbone','text!./tmplListItem.htm','./collection','./view','modal','modal','note/listView'],function(require) {
     var _ = require('underscore'),
         $ = require('jquery'),
         Model = require('./model'),
-        Collection = require('./collection'),
         EditStatus = require('classes/EditStatus'),
-        tmplListItem = require('text!./tmplListItem.htm'),
-        Modal = require('modal'),
-        View = require('./view');
+        alert = require('alert');
 
     var exports = require('backbone').View.extend({
 
-        tmplListItem: _.template(tmplListItem),
+        tmplListItem: _.template(require('text!./tmplListItem.htm')),
 
         events: {
             'click [data-click]': '_domEvents',
@@ -15290,7 +15456,7 @@ define('treatment/listView',['require','underscore','jquery','./model','./collec
         initialize: function(options) {
 
             if (!this.collection) {
-                this.collection = new Collection([new Model]);
+                this.collection = new(require('./collection'))([new Model]);
             } else if (this.collection.length === 0) {
                 this.collection.add({}, {
                     silent: true
@@ -15425,8 +15591,7 @@ define('treatment/listView',['require','underscore','jquery','./model','./collec
                         break;
 
                     case 'del':
-
-                        if (confirm('You are going to delete this Treatment.\r\nDo you want to continue?')) {
+                        alert('You are going to delete this Treatment.\r\nDo you want to continue?', 'warning', function() {
 
                             _.each(_.filter(this.collection.rest(idx + 1), this._nonDeleteFilter), function(t) {
                                 t.set({
@@ -15447,7 +15612,8 @@ define('treatment/listView',['require','underscore','jquery','./model','./collec
                                 this.collection.add(new Model);
                             }
 
-                        }
+                        }, function() {}, this);
+
                         break;
 
                     case 'up':
@@ -15483,7 +15649,7 @@ define('treatment/listView',['require','underscore','jquery','./model','./collec
                         break;
 
                     case 'edit':
-                        view = new View({
+                        view = new(require('./view'))({
                             model: new Model(treatment.toJSON()),
                         });
 
@@ -15491,7 +15657,7 @@ define('treatment/listView',['require','underscore','jquery','./model','./collec
                             treatment.set(props);
                         });
 
-                        Modal.show(view, 'compTreatmentModal');
+                        require('modal').show(view, 'compTreatmentModal');
                         break;
 
                     case 'note':
@@ -15609,71 +15775,44 @@ define('assessment/model',['require','classes/EditStatus','underscore','classes/
         },
 
         validate: function(attrs, options) {
-            var msg = [];
+            var valid = true;
 
-            if (_.isNull(attrs.IsFrequent)) {
-                msg.push('You must answer "Do fires occur frequently"');
+            if (_.isNull(attrs.IsFrequent) || _.isNull(attrs.IsExpectedToSpread)) {
+                valid = false;
+            } else {
+
+                switch (attrs.AssetCategoryCode) {
+
+                    case 'HS':
+
+                        if (!attrs.VegetationClassID || !attrs.VegetationAgeID || !attrs.CanopyID || !attrs.VulnerabilityID) {
+                            valid = false;
+                        }
+
+                        break;
+
+                    case 'EC':
+
+                        if (!attrs.ImpactLevelID || !attrs.RecoveryCostsID) {
+                            valid = false;
+                        }
+
+                        break;
+
+                    case 'EN':
+
+                        if (!attrs.ConservationStatusID || !attrs.GeographicExtentID || !attrs.PotentialImpactID) {
+                            valid = false;
+                        }
+
+                        break;
+
+                    default:
+                        break;
+                }
             }
 
-            if (_.isNull(attrs.IsExpectedToSpread)) {
-                msg.push('You must answer "If a fire occurs, is it expected to spread and reach the asset?"');
-            }
-
-            switch (attrs.AssetCategoryCode) {
-
-                case 'HS':
-
-                    if (!attrs.VegetationClassID) {
-                        msg.push('You must select "Vegetation Class"');
-                    }
-
-                    if (!attrs.VegetationAgeID) {
-                        msg.push('You must select "Vegetation Age"');
-                    }
-
-                    if (!attrs.CanopyID) {
-                        msg.push('You must select "Canopy"');
-                    }
-
-                    if (!attrs.VulnerabilityID) {
-                        msg.push('You must select "Vulnerability"');
-                    }
-
-                    break;
-
-                case 'EC':
-
-                    if (!attrs.ImpactLevelID) {
-                        msg.push('You must select "Level of Impact"');
-                    }
-
-                    if (!attrs.RecoveryCostsID) {
-                        msg.push('You must select "Recovery Costs"');
-                    }
-
-                    break;
-
-                case 'EN':
-
-                    if (!attrs.ConservationStatusID) {
-                        msg.push('You must select "Conservation Status"');
-                    }
-
-                    if (!attrs.GeographicExtentID) {
-                        msg.push('You must select "Geographic Extent"');
-                    }
-
-                    if (!attrs.PotentialImpactID) {
-                        msg.push('You must select "Potential Impact of Fire"');
-                    }
-
-                    break;
-
-                default:
-                    break;
-            }
-
-            return msg.length > 0 ? msg : null;
+            return valid ? null : 'Please select required fields';
         },
 
         _calculateRating: function() {
@@ -15693,7 +15832,7 @@ define('assessment/model',['require','classes/EditStatus','underscore','classes/
                         rating = 1;
                         color = '#55b053';
                     }
-                    
+
                 } else {
                     rating = 2;
                     color = '#cad064';
@@ -15717,16 +15856,16 @@ define('assessment/model',['require','classes/EditStatus','underscore','classes/
 });
 
 
-define('text!assessment/tmplHS.html',[],function () { return '<div class="row">\r\n    <div class="col col-3">\r\n        Vegetation Class:\r\n    </div>\r\n    <div class="col col-9">\r\n        <select name="VegetationClassID" class="full-width">\r\n            <option value="0">---</option>\r\n            <%_.each(this.refData.VegClasses, function(d){%>\r\n                <option value="<%=d.id%>">\r\n                    <%=d.desc%>\r\n                </option>\r\n                <%});%>\r\n        </select>\r\n    </div>\r\n</div>\r\n<div class="row">\r\n    <div class="col col-3">\r\n        Vegetation Age:\r\n    </div>\r\n    <div class="col col-3">\r\n        <select name="VegetationAgeID" class="full-width">\r\n            <option value="0">---</option>\r\n        </select>\r\n    </div>\r\n    <div class="col col-2 col-offset-1">\r\n        Canopy(%):\r\n    </div>\r\n    <div class="col col-3">\r\n        <select name="CanopyID" class="full-width">\r\n            <option value="0">---</option>\r\n        </select>\r\n    </div>\r\n</div>\r\n<div class="row">\r\n    <div class="col col-3">\r\n        Vulnerability\r\n    </div>\r\n    <div class="col col-9 radio-group">\r\n        <%_.each(this.refData.Vulnerabilities, function(d){%>\r\n            <label>\r\n                <input name="VulnerabilityID" type="radio" value="<%=d.id%>">\r\n                <%=d.desc%>\r\n            </label>\r\n            <%});%>\r\n    </div>\r\n</div>\r\n';});
+define('text!assessment/tmplHS.html',[],function () { return '<div class="row">\r\n    <div class="col col-3">\r\n        Vegetation Class:\r\n    </div>\r\n    <div class="col col-8">\r\n        <select name="VegetationClassID" class="full-width">\r\n            <option value="0">---</option>\r\n            <%_.each(this.refData.VegClasses, function(d){%>\r\n                <option value="<%=d.id%>">\r\n                    <%=d.desc%>\r\n                </option>\r\n                <%});%>\r\n        </select>\r\n    </div>\r\n    <div class="col col-1">\r\n        <i class="fa fa-asterisk required"></i>\r\n    </div>\r\n</div>\r\n<div class="row">\r\n    <div class="col col-3">\r\n        Vegetation Age:\r\n    </div>\r\n    <div class="col col-3">\r\n        <select name="VegetationAgeID" class="full-width">\r\n            <option value="0">---</option>\r\n        </select>\r\n    </div>\r\n    <div class="col col-2">\r\n        Canopy(%):\r\n    </div>\r\n    <div class="col col-3">\r\n        <select name="CanopyID" class="full-width">\r\n            <option value="0">---</option>\r\n        </select>\r\n    </div>\r\n    <div class="col col-1">\r\n        <i class="fa fa-asterisk required"></i>\r\n    </div>\r\n</div>\r\n<div class="row">\r\n    <div class="col col-3">\r\n        Vulnerability\r\n    </div>\r\n    <div class="col col-8 radio-group">\r\n        <%_.each(this.refData.Vulnerabilities, function(d){%>\r\n            <label>\r\n                <input name="VulnerabilityID" type="radio" value="<%=d.id%>">\r\n                <%=d.desc%>\r\n            </label>\r\n            <%});%>\r\n    </div>\r\n    <div class="col col-1">\r\n        <i class="fa fa-asterisk required"></i>\r\n    </div>\r\n</div>\r\n';});
 
 
-define('text!assessment/tmplEC.html',[],function () { return '<div class="row">\r\n    <div class="col col-3">\r\n        Level of Impact\r\n    </div>\r\n    <div class="col col-9 radio-group">\r\n        <%_.each(this.refData.ImpactLevels, function(d){%>\r\n            <label>\r\n                <input name="ImpactLevelID" type="radio" value="<%=d.id%>">\r\n                <%=d.desc%>\r\n            </label>\r\n            <%});%>\r\n    </div>\r\n</div>\r\n<div class="row">\r\n    <div class="col col-3">\r\n        Recovery Costs:\r\n    </div>\r\n    <div class="col col-9 radio-group">\r\n        <%_.each(this.refData.RecoveryCosts, function(d){%>\r\n            <label>\r\n                <input name="RecoveryCostsID" type="radio" value="<%=d.id%>">\r\n                <%=d.desc%>\r\n            </label>\r\n            <%});%>\r\n    </div>\r\n</div>\r\n';});
+define('text!assessment/tmplEC.html',[],function () { return '<div class="row">\r\n    <div class="col col-3">\r\n        Level of Impact\r\n    </div>\r\n    <div class="col col-8 radio-group">\r\n        <%_.each(this.refData.ImpactLevels, function(d){%>\r\n            <label>\r\n                <input name="ImpactLevelID" type="radio" value="<%=d.id%>">\r\n                <%=d.desc%>\r\n            </label>\r\n            <%});%>\r\n    </div>\r\n    <div class="col col-1">\r\n        <i class="fa fa-asterisk required"></i>\r\n    </div>\r\n</div>\r\n<div class="row">\r\n    <div class="col col-3">\r\n        Recovery Costs:\r\n    </div>\r\n    <div class="col col-8 radio-group">\r\n        <%_.each(this.refData.RecoveryCosts, function(d){%>\r\n            <label>\r\n                <input name="RecoveryCostsID" type="radio" value="<%=d.id%>">\r\n                <%=d.desc%>\r\n            </label>\r\n            <%});%>\r\n    </div>\r\n    <div class="col col-1">\r\n        <i class="fa fa-asterisk required"></i>\r\n    </div>\r\n</div>\r\n';});
 
 
-define('text!assessment/tmplEN.html',[],function () { return '<div class="row">\r\n    <div class="col col-3">\r\n        Conservation Status:\r\n    </div>\r\n    <div class="col col-9 radio-group">\r\n        <%_.each(this.refData.ConservationStatus, function(d){%>\r\n            <label>\r\n                <input name="ConservationStatusID" type="radio" value="<%=d.id%>">\r\n                <%=d.desc%>\r\n            </label>\r\n            <%});%>\r\n    </div>\r\n</div>\r\n<div class="row">\r\n    <div class="col col-3">\r\n        Geographic Extent:\r\n    </div>\r\n    <div class="col col-9 radio-group">\r\n        <%_.each(this.refData.GeographicExtents, function(d){%>\r\n            <label>\r\n                <input name="GeographicExtentID" type="radio" value="<%=d.id%>">\r\n                <%=d.desc%>\r\n            </label>\r\n            <%});%>\r\n    </div>\r\n</div>\r\n<div class="row">\r\n    <div class="col col-3">\r\n        Potential Impact of File:\r\n    </div>\r\n    <div class="col col-9 radio-group">\r\n        <%_.each(this.refData.PotentialImpacts, function(d){%>\r\n            <label>\r\n                <input name="PotentialImpactID" type="radio" value="<%=d.id%>">\r\n                <%=d.desc%>\r\n            </label>\r\n            <%});%>\r\n    </div>\r\n</div>\r\n';});
+define('text!assessment/tmplEN.html',[],function () { return '<div class="row">\r\n    <div class="col col-3">\r\n        Conservation Status:\r\n    </div>\r\n    <div class="col col-8 radio-group">\r\n        <%_.each(this.refData.ConservationStatus, function(d){%>\r\n            <label>\r\n                <input name="ConservationStatusID" type="radio" value="<%=d.id%>">\r\n                <%=d.desc%>\r\n            </label>\r\n            <%});%>\r\n    </div>\r\n    <div class="col col-1">\r\n        <i class="fa fa-asterisk required"></i>\r\n    </div>\r\n</div>\r\n<div class="row">\r\n    <div class="col col-3">\r\n        Geographic Extent:\r\n    </div>\r\n    <div class="col col-8 radio-group">\r\n        <%_.each(this.refData.GeographicExtents, function(d){%>\r\n            <label>\r\n                <input name="GeographicExtentID" type="radio" value="<%=d.id%>">\r\n                <%=d.desc%>\r\n            </label>\r\n            <%});%>\r\n    </div>\r\n    <div class="col col-1">\r\n        <i class="fa fa-asterisk required"></i>\r\n    </div>\r\n</div>\r\n<div class="row">\r\n    <div class="col col-3">\r\n        Potential Impact of File:\r\n    </div>\r\n    <div class="col col-8 radio-group">\r\n        <%_.each(this.refData.PotentialImpacts, function(d){%>\r\n            <label>\r\n                <input name="PotentialImpactID" type="radio" value="<%=d.id%>">\r\n                <%=d.desc%>\r\n            </label>\r\n            <%});%>\r\n    </div>\r\n    <div class="col col-1">\r\n        <i class="fa fa-asterisk required"></i>\r\n    </div>\r\n</div>\r\n';});
 
 
-define('text!assessment/template.html',[],function () { return '<div class="compAssessment">\r\n    <fieldset>\r\n        <legend>Likelihood</legend>\r\n        <div class="row">\r\n            <div class="col col-8">\r\n                Do fires occur frequently?\r\n            </div>\r\n            <div class="col col-4 radio-group">\r\n                <label>\r\n                    <input name="IsFrequent" value="false" type="radio">No</label>\r\n                <label>\r\n                    <input name="IsFrequent" value="true" type="radio">Yes</label>\r\n            </div>\r\n        </div>\r\n        <div class="row">\r\n            <div class="col col-8">\r\n                If a fire occurs, is it expected to reach the asset?\r\n            </div>\r\n            <div class="col col-4 radio-group">\r\n                <label>\r\n                    <input name="IsExpectedToSpread" value="false" type="radio">No</label>\r\n                <label>\r\n                    <input name="IsExpectedToSpread" value="true" type="radio">Yes</label>\r\n            </div>\r\n        </div>\r\n    </fieldset>\r\n    <fieldset data-domid="fsConsequence">\r\n        <legend>Consequence</legend>\r\n        <%var tmpl=this.consequenceTemplates[this.model.get( \'AssetCategoryCode\')]; if(tmpl){%>\r\n            <%=tmpl.apply(this)%>\r\n                <%}%>\r\n    </fieldset>\r\n    <div class="row">\r\n        <div class="col text-right">\r\n            <button data-click="save">Save</button>\r\n            <button data-click="close" class="secondary">Cancel</button>\r\n        </div>\r\n    </div>\r\n</div>\r\n';});
+define('text!assessment/template.html',[],function () { return '<div class="compAssessment">\r\n    <fieldset>\r\n        <legend>Likelihood</legend>\r\n        <div class="row">\r\n            <div class="col col-8">\r\n                Do fires occur frequently?\r\n            </div>\r\n            <div class="col col-3 radio-group">\r\n                <label>\r\n                    <input name="IsFrequent" value="false" type="radio">No</label>\r\n                <label>\r\n                    <input name="IsFrequent" value="true" type="radio">Yes</label>\r\n            </div>\r\n            <div class="col col-1">\r\n                <i class="fa fa-asterisk required"></i>\r\n            </div>\r\n        </div>\r\n        <div class="row">\r\n            <div class="col col-8">\r\n                If a fire occurs, is it expected to reach the asset?\r\n            </div>\r\n            <div class="col col-3 radio-group">\r\n                <label>\r\n                    <input name="IsExpectedToSpread" value="false" type="radio">No</label>\r\n                <label>\r\n                    <input name="IsExpectedToSpread" value="true" type="radio">Yes</label>\r\n            </div>\r\n            <div class="col col-1">\r\n                <i class="fa fa-asterisk required"></i>\r\n            </div>\r\n        </div>\r\n    </fieldset>\r\n    <fieldset data-domid="fsConsequence">\r\n        <legend>Consequence</legend>\r\n        <%var tmpl=this.consequenceTemplates[this.model.get( \'AssetCategoryCode\')]; if(tmpl){%>\r\n            <%=tmpl.apply(this)%>\r\n                <%}%>\r\n    </fieldset>\r\n    <div class="row">\r\n        <div class="col text-right">\r\n            <button data-click="save">Save</button>\r\n            <button data-click="close" class="secondary">Cancel</button>\r\n        </div>\r\n    </div>\r\n</div>\r\n';});
 
 define('assessment/view',['require','underscore','jquery','./model','backbone','text!./tmplHS.html','text!./tmplEC.html','text!./tmplEN.html','text!./template.html','backbone'],function(require) {
     var _ = require('underscore'),
@@ -15804,13 +15943,20 @@ define('assessment/view',['require','underscore','jquery','./model','backbone','
 
         remove: function() {
 
-            if (this.model.isDirty() && !confirm('You may lose any unsaved changes.\r\nDo you want to continue?')) {
-                return;
-            }
+            $.Deferred(_.bind(function(deferred) {
+                if (!this.model.isDirty()) {
+                    deferred.resolve();
+                } else {
+                    alert('You may lose any unsaved changes.\r\nDo you want to continue?', 'warning', function() {
+                        deferred.resolve();
+                    }, function() {});
+                }
+            }, this)).done(_.bind(function() {
+                $(window).off('beforeunload', this._beforeunload);
+                require('backbone').View.prototype.remove.apply(this);
+                this.trigger('removed', this);
+            }, this));
 
-            $(window).off('beforeunload', this._beforeunload);
-            require('backbone').View.prototype.remove.apply(this);
-            this.trigger('removed', this);
         },
 
         _modelChanged: function(event) {
@@ -15828,7 +15974,7 @@ define('assessment/view',['require','underscore','jquery','./model','backbone','
 
             switch (event) {
                 case 'invalid':
-                    console.warn(this.model.validationError);
+                    alert(this.model.validationError);
                     break;
 
                 case 'change:VegetationClassID':
@@ -15933,7 +16079,10 @@ define('assessment/view',['require','underscore','jquery','./model','backbone','
                 val,
                 silent = false;
 
+            e.stopPropagation();
+
             if (type === 'click') {
+                e.preventDefault();
 
                 switch (cmd) {
 
@@ -15990,7 +16139,7 @@ define('assessment/view',['require','underscore','jquery','./model','backbone','
         _beforeunload: function(e) {
 
             if (this.model.isDirty()) {
-                return 'You may lose any unsaved changes.\r\nDo you want to continue?';
+                return 'You may lose any unsaved changes.';
             }
 
         },
@@ -16014,12 +16163,12 @@ define('assessment/view',['require','underscore','jquery','./model','backbone','
     return exports;
 });
 
-define('factor/listView',['require','underscore','jquery','./model','classes/EditStatus','modal','backbone','text!./tmplList.html','text!./tmplListItem.html','./collection','treatment/listView','assessment/view','assessment/model'],function(require) {
+define('factor/listView',['require','underscore','jquery','./model','classes/EditStatus','alert','backbone','text!./tmplList.html','text!./tmplListItem.html','./collection','treatment/listView','assessment/view','assessment/model','modal'],function(require) {
     var _ = require('underscore'),
         $ = require('jquery'),
         Model = require('./model'),
         EditStatus = require('classes/EditStatus'),
-        Modal = require('modal');
+        alert = require('alert');
 
     var exports = require('backbone').View.extend({
 
@@ -16265,20 +16414,24 @@ define('factor/listView',['require','underscore','jquery','./model','classes/Edi
 
                     case 'rate':
 
-                        assessmentView = new(require('assessment/view'))({
-                            model: new(require('assessment/model'))(factor.get('Assessment'))
-                        });
+                        if (!factor.get('Assessment') || !factor.get('Assessment').AssetCategoryCode) {
+                            alert('Please select an Asset Category');
+                        } else {
+                            assessmentView = new(require('assessment/view'))({
+                                model: new(require('assessment/model'))(factor.get('Assessment'))
+                            });
 
-                        this.listenTo(assessmentView, {
-                            'removed': function(view) {
-                                this.stopListening(view);
-                            },
-                            'saved': function(props) {
-                                factor.set('Assessment', props).changeEditStatus(EditStatus.Update);
-                            }
-                        });
+                            this.listenTo(assessmentView, {
+                                'removed': function(view) {
+                                    this.stopListening(view);
+                                },
+                                'saved': function(props) {
+                                    factor.set('Assessment', props).changeEditStatus(EditStatus.Update);
+                                }
+                            });
 
-                        Modal.show(assessmentView, 'compAssessmentModal');
+                            require('modal').show(assessmentView, 'compAssessmentModal');
+                        }
                         break;
 
                     case 'add':
@@ -16300,7 +16453,7 @@ define('factor/listView',['require','underscore','jquery','./model','classes/Edi
 
                     case 'del':
 
-                        if (confirm('You are going to delete this Risk Factor.\r\nDo you want to continue?')) {
+                        alert('You are going to delete this Risk Factor.\r\nDo you want to continue?', 'warning', function() {
 
                             _.each(_.filter(this.collection.rest(idx + 1), this._nonDeleteFilter), function(f) {
                                 f.set({
@@ -16319,8 +16472,7 @@ define('factor/listView',['require','underscore','jquery','./model','classes/Edi
                             if (!this._findNonDeleteFactors().length) {
                                 this.collection.add(new Model);
                             }
-                        }
-
+                        }, function() {}, this);
                         break;
 
                     case 'up':
@@ -16438,9 +16590,10 @@ define('factor/listView',['require','underscore','jquery','./model','classes/Edi
     return exports;
 });
 
-define('risk/view',['require','jquery','underscore','backbone','text!./template.html','./model','analysis/listView','factor/listView','note/listView','modal'],function(require) {
+define('risk/view',['require','jquery','underscore','alert','backbone','text!./template.html','./model','analysis/listView','factor/listView','note/listView','modal'],function(require) {
     var $ = require('jquery'),
-        _ = require('underscore');
+        _ = require('underscore')
+    alert = require('alert');
 
     return require('backbone').View.extend({
 
@@ -16525,14 +16678,6 @@ define('risk/view',['require','jquery','underscore','backbone','text!./template.
                     this._getByName('AssetOwner').val(val || '');
                     break;
 
-                    // case 'change:Analyses':
-                    //     this._analysisListView.collection.reset(val);
-                    //     break;
-
-                    // case 'change:RiskFactors':
-                    //     this._factorListView.collection.reset(val);
-                    //     break;
-
                 case 'change:activeStep':
                     this._get('button[data-inactivestep]').prop('disabled', false);
                     this._get('button[data-inactivestep="' + val + '"]').prop('disabled', true);
@@ -16576,22 +16721,23 @@ define('risk/view',['require','jquery','underscore','backbone','text!./template.
                         break;
 
                     case 'save':
-                        this.model.save();
+                        this.model.save().done(function() {
+                            alert('Risk information saved', 'success');
+                        });
                         break;
 
 
                     case 'reset':
-                        if (!this.model.isDirty() || confirm('You may lose any unsaved changes.\r\nDo you want to continue?')) {
-                            this.model.set(new this.model.defaults).setDirty(false);
-                        }
-                        break;
-
                     case 'reload':
-
-                        if (!this.model.isDirty() || confirm('You may lose any unsaved changes.\r\nDo you want to continue?')) {
-                            this.model.fetch();
+                        if (!this.model.isDirty()) {
+                            this._reloadModel(cmd);
+                        } else {
+                            alert('You may lose any unsaved changes.\r\nDo you want to continue?', 'warning', function() {
+                                this._reloadModel(cmd);
+                            }, function() {}, this);
                         }
                         break;
+
                 }
             } else if (type === 'keyup') {
                 /*cared input name is after the corresponding prop's name*/
@@ -16606,9 +16752,17 @@ define('risk/view',['require','jquery','underscore','backbone','text!./template.
             }
         },
 
+        _reloadModel: function(cmd) {
+            if (cmd === 'reset') {
+                this.model.set(new this.model.defaults).setDirty(false);
+            } else {
+                this.model.fetch();
+            }
+        },
+
         _beforeunload: function() {
             if (this.model.isDirty()) {
-                return 'You may lose any unsaved changes.\r\nDo you want to continue?';
+                return 'You may lose any unsaved changes.';
             }
         },
 
@@ -16629,7 +16783,7 @@ define('risk/view',['require','jquery','underscore','backbone','text!./template.
 
 });
 
-define('app/main',['require','underscore','helpers/store','loader','risk/view','loader'],function(require) {
+define('app/main',['require','underscore','helpers/store','loader','risk/view'],function(require) {
     var _ = require('underscore'),
         store = require('helpers/store'),
         loader = require('loader'),
@@ -16658,8 +16812,7 @@ define('app/main',['require','underscore','helpers/store','loader','risk/view','
             riskView.model.clear({
                 silent: true
             }).set(store.risks[store.risks.length - 1]).setDirty(false);
-        },
-        loader: require('loader')
+        }
     }
 });
 
@@ -19145,6 +19298,9 @@ require.config({
     }, {
         name: 'loader',
         location: 'components/loader'
+    }, {
+        name: 'alert',
+        location: 'components/alert'
     }]
 
 });
