@@ -12,6 +12,7 @@ define(function(require) {
             _.bindAll(this, 'remove');
             this._message = options.message || '';
             this._buttons = options.buttons || [];
+            this._buttonsClicked = options.buttonsClicked || null;
             this._type = options.type || 'notice';
 
             switch (this._type) {
@@ -53,7 +54,7 @@ define(function(require) {
                     return btn.key === action;
                 });
 
-                if (button && _.isFunction(button.callback) && !button.callback.apply(this)) {
+                if (button && _.isFunction(this._buttonsClicked) && !this._buttonsClicked.apply(this, [button.key])) {
                     this.remove();
                 }
             }

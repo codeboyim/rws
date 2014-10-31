@@ -1,9 +1,13 @@
-﻿define(function(require) {
+define(function(require) {
     var $ = require('jquery'),
         _ = require('underscore'),
         EditStatus = require('classes/EditStatus'),
         alert = require('alert');
 
+    /**
+     * alert view
+     * @class
+     */
     var exports = require('backbone').View.extend({
 
         template: _.template(require('text!./tmplList.html')),

@@ -1,6 +1,15 @@
 define(function(require) {
     var _ = require('underscore');
 
+    /**
+     * a replacement of browser's alert and confirm popup windows
+     * @module components/alert
+     * @param {string} message
+     * @param {string} [type="notice"] - one of "notice", "warning", "success" and "error"
+     * @param {function()} [okCallback] - if defined, "OK" button will be on
+     * @param {function()} [cancelCallback] - if defined, "Cancel" button will be on
+     * @param {object} [context] - the this object in ok and cancel callbacks
+     */
     var exports = function(message) {
         var cancelCb,
             okCb,
@@ -9,7 +18,7 @@ define(function(require) {
             type = 'notice',
             context = args[args.length - 1];
 
-
+        //normalize arguments
         if (typeof args[0] !== 'string') {
             args.unshift(type);
         }
@@ -41,7 +50,16 @@ define(function(require) {
         require('modal').show(new(require('./view'))({
             message: message,
             buttons: buttons,
-            type: type
+            type: type,
+            buttonsClicked: function(key) {
+
+                if (key === 'ok' && _.isFunction(okCb)) {
+                    okCb.apply(context);
+                } else if (key === 'cancel' && _.isFunction(cancelCb)) {
+                    cancelCb.apply(context);
+                }
+
+            }
         }), 'compAlertModal ' + type);
     };
 
