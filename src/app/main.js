@@ -9,24 +9,20 @@ define(function(require) {
         });
 
     riskView.render();
-    
+
     /**
      * APIs for testing from console
      * @exports app
      */
     return {
         log: function() {
-            console.log(JSON.stringify(riskView.model.toJSON()));
+            console.info('current risk view model', JSON.stringify(riskView.model.toJSON()));
         },
         clear: function() {
             riskView.model.clear({
                 silent: true
             }).set(new riskView.model.defaults).setDirty(false);
-        },
-        loadSample: function() {
-            riskView.model.clear({
-                silent: true
-            }).set(store.risks[store.risks.length - 1]).setDirty(false);
+            console.info('risk view model has been cleared');
         }
     }
 });
