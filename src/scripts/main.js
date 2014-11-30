@@ -38,4 +38,5 @@ require(['loader'], function(loader) {
 require(['app'], function(app) {
     $.noConflict();
     window.app = app;
+    console.info('now, you can type \'app.log()\' display current risk model. type \'app.clear()\' to clear the fields');
 });
