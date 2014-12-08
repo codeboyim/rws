@@ -74,6 +74,7 @@
 
         remove: function() {
 
+            //use promise to avoid duplication, and chain the async activities.
             $.Deferred(_.bind(function(deferred) {
                 if (!this.model.isDirty()) {
                     deferred.resolve();
