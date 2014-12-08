@@ -179,7 +179,6 @@ td,
 th {
   padding: 0;
 }
-
 @font-face {
   font-family: 'FontAwesome';
   src: url(../lib/fontawesome/fonts/fontawesome-webfont.eot?v=4.2.0);
@@ -1843,7 +1842,6 @@ th {
 .fa-meanpath:before {
   content: "\f20c";
 }
-
 .ui-helper-hidden {
 	display: none;
 }
@@ -2989,7 +2987,6 @@ body .ui-tooltip {
 	filter: Alpha(Opacity=60); 
 	border-radius: 0px;
 }
-
 .row {
     overflow: hidden;
     position: relative;
@@ -3323,7 +3320,6 @@ td {
         -webkit-transform: scaleY(1.0);
     }
 }
-
 .compRiskStep{
     display:none;
 }
