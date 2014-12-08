@@ -1,7 +1,9 @@
 [RealWork Sample](http://codeboyim.github.io/rws/)
 ===============
 
-This sample project demonstrates a common input screen in the RealWork and how such a screen is developed recently using a more *modern* Web development approach.
+This sample project demonstrates a common input screen in the RealWork and how such type of UI has been developed in a *modern* Web development approach.
+
+This project contains only front-end code demonstration.
 
 Demo
 ----
@@ -23,24 +25,15 @@ The code in this sample is extracted from the RealWork project. It has been simp
 - Chaining asynchronous activities using Promise (jQuery Deferred object)
 - A simple CSS grid framework and modular architecture
 
-Extras
-----
-Few more things have been implemented in this sample for the integrity and my own interest.
 
-
-- Additional UI components, i.e. modal, alert and loader
-- [Bower]
-- [Grunt]
-- [Font Awesome](http://fortawesome.github.io/Font-Awesome/)
-- Some CSS3 for UI/UX
-
-
-Tech
+Tools and Utilities
 ---
 
-- [Backbone.js] - skeleton to build the app on
-- [jQuery] - fast and the most popular cross-browser DOM traversal/manipulation solution
-- [RequireJS] - module loader and code optimizer
+- [Backbone.js]
+- [Underscore.js](http://underscorejs.org/)
+- [jQuery]
+- [RequireJS]
+
 
 Get started
 ---
