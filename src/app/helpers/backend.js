@@ -32,6 +32,8 @@ define(function(require) {
                         refData[f] = vals[i];
                     });
 
+                    console.log('done');
+
                     return refData;
                 });
 
@@ -54,6 +56,7 @@ define(function(require) {
         },
 
         getNoteRefData: function() {
+            console.log('loading Note reference data');
             return this._getBundleRefData({
                 'NoteTypes': 'notetype',
                 'NoteStatuses': 'notestat'
@@ -61,18 +64,21 @@ define(function(require) {
         },
 
         getAnalysisRefData: function() {
+            console.log('loading Analysis reference data');
             return this._getBundleRefData({
                 'AnalysisTypes': 'riskassessmentmethod'
             });
         },
 
         getRiskFactorRefData: function() {
+            console.log('loading Risk Factor reference data');
             return this._getBundleRefData({
                 'AssetCategories': 'assetcategory'
             });
         },
 
         getAssessmentRefData: function() {
+            console.log('loading Assessment reference data');
             return this._getBundleRefData({
                 'VegClasses': 'vegetationclass',
                 'Separations': 'separation',
@@ -86,6 +92,7 @@ define(function(require) {
         },
 
         getTreatmentRefData: function() {
+            console.log('loading Treatment reference data');
             return this._getBundleRefData({
                 'TreatmentStrategis': 'TreatStrat',
                 'TreatmentManagers': 'Treatmgr',
@@ -95,10 +102,12 @@ define(function(require) {
 
         getSubRefData: function(id) {
             loader.start();
+            console.log('loading sub reference data');
 
             return $.Deferred(function(d) {
                 window.setTimeout(function() {
                     d.resolve(store.subrefdata[id] || null);
+                    console.log('done');
                     loader.stop();
                 }, mimicAjaxDelay);
             }).promise();
@@ -106,6 +115,7 @@ define(function(require) {
 
         saveRisk: function(risk) {
             loader.start();
+            console.log('saving Risk');
 
             return $.Deferred(function(d) {
 
@@ -120,6 +130,7 @@ define(function(require) {
 
         getRiskById: function(id) {
             loader.start();
+            console.log('loading Risk');
 
             return $.Deferred(function(d) {
 
