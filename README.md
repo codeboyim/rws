@@ -1,7 +1,7 @@
 [RealWork Sample](http://codeboyim.github.io/rws/)
 ===============
 
-This sample project demonstrates a common input screen in the RealWork and how such type of UI has been developed in a *modern* Web development approach.
+This is a demo project which shows a commonly seen input type of screen in the RealWork and how such type of UI has been developed in a *modern* modularized Web development approach.
 
 This project contains only front-end code demonstration.
 
@@ -16,11 +16,11 @@ Features
 
 The code in this sample is extracted from the RealWork project. It has been simplified and re-developed to emphasize on the following technical features:
 
-- Code separation and modular development
-- Re-usable components
+- Code separation and modularized development
+- Re-usable components, e.g. Notes
 - Nested Backbone views, models and collections
 - Model/collection editing status track
-- Observation/Event pattern for communications between parts via Backbone.Event
+- Observer/Event pattern for module interactions via Backbone.Event
 - On-demand data loading
 - Chaining asynchronous activities using Promise (jQuery Deferred object)
 - A simple CSS grid framework and modular architecture
