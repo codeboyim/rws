@@ -1,8 +1,8 @@
 [RealWork Sample](http://codeboyim.github.io/rws/)
 ===============
-Information collection (input screen) is a common UI in RiskCloud(alias RealWork in this demo). In recent projects, I had been rethinking and then re-engineerred the development in a more modularized approach.
+Information collection (input screen) is a common UI in RiskCloud(alias RealWork in this demo). Sometimes it could get so complex that it has become a de facto single page application by its own. In recent projects, I had been rethinking and then re-engineered the development of such type of UI in a more modularized approach.
 
-This project contains only front-end code demonstration.
+This project contains only front-end code demonstration but uses a mocking backend store for retrieving reference data and saving.
 
 Demo
 ----
