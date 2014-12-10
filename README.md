@@ -1,7 +1,6 @@
 [RealWork Sample](http://codeboyim.github.io/rws/)
 ===============
-
-This is a demo project which shows a commonly seen input type of screen in the RealWork and how such type of UI has been developed in a *modern* modularized Web development approach.
+Information collection (input screen) is a common UI in RiskCloud(alias RealWork in this demo). In recent projects, I had been rethinking and then re-engineerred the development in a more modularized approach.
 
 This project contains only front-end code demonstration.
 
@@ -14,7 +13,7 @@ Live demo: http://codeboyim.github.io/rws/
 Features
 ----
 
-The code in this sample is extracted from the RealWork project. It has been simplified and re-developed to emphasize on the following technical features:
+The code in this sample is extracted from the RealWork project. It has been simplified to emphasize on the following technical features:
 
 - Code separation and modularized development
 - Re-usable components, e.g. Notes
@@ -33,6 +32,7 @@ Tools and Utilities
 - [Underscore.js](http://underscorejs.org/)
 - [jQuery]
 - [RequireJS]
+
 
 
 Get started
