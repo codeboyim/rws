@@ -16782,7 +16782,8 @@ define('risk/view',['require','jquery','underscore','alert','backbone','text!./t
                 $el = $(type === 'click' ? e.currentTarget : e.target),
                 cmd, val,
                 attrName, newProp,
-                noteListView;
+                noteListView,
+                promise;
 
             if (type === 'click') {
                 e.preventDefault();
@@ -16807,11 +16808,14 @@ define('risk/view',['require','jquery','underscore','alert','backbone','text!./t
                         break;
 
                     case 'save':
-                        this.model.save().done(function() {
-                            alert('Risk information saved', 'success');
-                        });
-                        break;
+                        promise = this.model.save();
 
+                        if (promise) {
+                            promise.done(function() {
+                                alert('Risk information saved', 'success');
+                            });
+                        }
+                        break;
 
                     case 'reset':
                     case 'reload':
